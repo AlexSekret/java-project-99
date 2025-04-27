@@ -4,14 +4,16 @@ FROM eclipse-temurin:21-jdk as builder
 WORKDIR /app
 
 # Копируем только файлы, необходимые для загрузки зависимостей
-COPY build.gradle.kts settings.gradle.kts /app/
-COPY gradle /app/gradle
+COPY gradle gradle
+COPY gradlew .
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
 
 # Загружаем зависимости (кешируем этот слой)
-RUN ./gradlew dependencies --no-daemon
+RUN ./gradlew --no-daemon dependencies
 
 # Копируем весь исходный код
-COPY src /app/src
+COPY src src
 
 # Собираем JAR
 RUN ./gradlew bootJar --no-daemon
