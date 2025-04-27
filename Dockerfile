@@ -1,24 +1,34 @@
-FROM eclipse-temurin:21
+# Этап сборки
+FROM eclipse-temurin:21-jdk as builder
 
-ARG GRADLE_VERSION=8.8
+WORKDIR /app
 
-RUN apt-get update && apt-get install -yq unzip
+# Копируем только файлы, необходимые для загрузки зависимостей
+COPY build.gradle.kts settings.gradle.kts gradle.properties /app/
+COPY gradle /app/gradle
 
-RUN wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip \
-    && unzip gradle-${GRADLE_VERSION}-bin.zip \
-    && rm gradle-${GRADLE_VERSION}-bin.zip
+# Загружаем зависимости (кешируем этот слой)
+RUN ./gradlew dependencies --no-daemon
 
-ENV GRADLE_HOME=/opt/gradle
+# Копируем весь исходный код
+COPY src /app/src
 
-RUN mv gradle-${GRADLE_VERSION} ${GRADLE_HOME}
+# Собираем JAR
+RUN ./gradlew bootJar --no-daemon
 
-ENV PATH=$PATH:$GRADLE_HOME/bin
+# Этап запуска
+FROM eclipse-temurin:21-jre-jammy
 
+WORKDIR /app
 
-# WORKDIR /app
-#
-# COPY /app .
+# Копируем JAR из этапа сборки
+COPY --from=builder /app/build/libs/*.jar app.jar
 
-RUN gradle installDist
+# Параметры для оптимизации памяти (настройте под ваше приложение)
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=50"
 
-CMD ./build/install/app/bin/app
+# Порт для HTTP сервера
+EXPOSE 8080
+
+# Команда запуска
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
