@@ -4,7 +4,7 @@ FROM eclipse-temurin:21-jdk as builder
 WORKDIR /app
 
 # Копируем только файлы, необходимые для загрузки зависимостей
-COPY build.gradle.kts settings.gradle.kts gradle.properties /app/
+COPY build.gradle.kts settings.gradle.kts /app/
 COPY gradle /app/gradle
 
 # Загружаем зависимости (кешируем этот слой)
