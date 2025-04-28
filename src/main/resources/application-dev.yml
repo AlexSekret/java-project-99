@@ -1,0 +1,20 @@
+---
+spring:
+  datasource:
+    url: jdbc:h2:mem:devdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;
+    driverClassName: org.h2.Driver
+    username: sa
+    password: '123'
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop  # Пересоздаёт БД при старте (для тестов)
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings.trace: false
+      settings.web-allow-others: false

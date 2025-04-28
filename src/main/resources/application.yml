@@ -1,0 +1,23 @@
+---
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  properties:
+    hibernate:
+      format_sql: true
+  profiles:
+    active: dev
+  output:
+    ansi:
+      enabled: always
+
+logging:
+  level:
+    root: WARN
+    org.springframework: INFO
+    hexlet.code.app: DEBUG
+
+server:
+  address: 0.0.0.0
