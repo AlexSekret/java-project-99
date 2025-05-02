@@ -31,16 +31,30 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           fetch-depth: 0
-      #- name: Check gradle version
-      #  run: gradle --version
+      - name: Print environment info
+        run: |
+          java -version
+          ./gradlew --version
+          openssl version
+
       - name: Verify that the openssl command is present
         run: openssl version
       - name: Write private key
-        run: echo ${{ secrets.RSA_PRIVATE_KEY }} > src/main/resources/certs/private.pem
+        env:
+          PRIVATE_KEY: ${{ secrets.RSA_PRIVATE_KEY }}
+        run: |
+          echo "$PRIVATE_KEY" > src/main/resources/certs/private.pem
       - name: Generate public key
         run: openssl rsa -in src/main/resources/certs/private.pem -pubout -out src/main/resources/certs/public.pem
       - name: Secure key permissions
         run: chmod 600 src/main/resources/certs/private.pem
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
 
       - name: Build with Gradle Wrapper
         run: make build
@@ -60,13 +74,6 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
 
       - name: Analyze with SonarQube
         env:
