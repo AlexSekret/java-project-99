@@ -36,9 +36,12 @@ jobs:
           java -version
           ./gradlew --version
           openssl version
-
-      - name: Verify that the openssl command is present
-        run: openssl version
+      - name: Check for RSA private key
+        if: secrets.RSA_PRIVATE_KEY == ''
+        run: |
+          echo "Error: RSA_PRIVATE_KEY secret is missing" && exit 1
+      - name: Create certs directory
+        run: mkdir -p src/main/resources/certs
       - name: Write private key
         env:
           PRIVATE_KEY: ${{ secrets.RSA_PRIVATE_KEY }}
@@ -47,7 +50,8 @@ jobs:
       - name: Generate public key
         run: openssl rsa -in src/main/resources/certs/private.pem -pubout -out src/main/resources/certs/public.pem
       - name: Secure key permissions
-        run: chmod 600 src/main/resources/certs/private.pem
+        run: |
+          chmod 600 src/main/resources/certs/private.pem || true
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
