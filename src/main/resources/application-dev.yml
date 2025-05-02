@@ -18,3 +18,6 @@ spring:
       path: /h2-console
       settings.trace: false
       settings.web-allow-others: false
+rsa:
+  private-key: classpath:certs/private.pem
+  public-key: classpath:certs/public.pem

@@ -2,3 +2,6 @@
 spring:
   datasource:
     url: ${JDBC_DATABASE_URL}
+rsa:
+  private-key: ${RSA_PRIVATE_KEY}
+  public-key: ${RSA_PUBLIC_KEY}

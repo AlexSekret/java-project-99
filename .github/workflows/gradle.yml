@@ -37,20 +37,6 @@ jobs:
           ./gradlew --version
           openssl version
 
-      - name: Create certs directory
-        run: mkdir -p src/main/resources/certs
-      - name: Write private key
-        env:
-          PRIVATE_KEY: ${{ secrets.RSA_PRIVATE_KEY }}
-        run: |
-          echo "$PRIVATE_KEY" > src/main/resources/certs/private.pem
-      - name: Generate public key
-        run: |
-          openssl rsa -in src/main/resources/certs/private.pem -pubout -out src/main/resources/certs/public.pem
-      - name: Secure key permissions
-        run: |
-          chmod 600 src/main/resources/certs/private.pem || true
-
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -59,16 +45,16 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Build with Gradle Wrapper
-        run: make build
+        run: ./gradlew build
 
       - name: Checking style with Gradle
-        run: make lint
+        run: ./gradlew checkstyleMain
 
       - name: Testing with Gradle
-        run: make test
+        run: ./gradlew test
 
       - name: Generate coverage report
-        run: make report
+        run: ./gradlew jacocoTestReport
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4

@@ -15,9 +15,6 @@ RUN ./gradlew --no-daemon dependencies
 # Копируем весь исходный код
 COPY src src
 
-RUN echo "=== TRY TO FIND CERTS ==="
-RUN ls -la ./src/main/resources/certs
-
 # Собираем JAR
 RUN ./gradlew bootJar --no-daemon
 
