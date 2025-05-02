@@ -1,18 +1,19 @@
 package hexlet.code.app.component;
 
 import hexlet.code.app.model.User;
-import hexlet.code.app.repository.UserRepository;
+import hexlet.code.app.service.CustomUserDetailsService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class DataInitializer implements ApplicationRunner {
     @Autowired
-    private UserRepository userRepository;
+    private CustomUserDetailsService userDetailsService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -20,11 +21,9 @@ public class DataInitializer implements ApplicationRunner {
         String lastName = "Admin";
         String email = "hexlet@example.com";
         String password = "qwerty";
-        User user = new User();
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setEmail(email);
-        user.setPassword(password);
-        userRepository.save(user);
+        User userData = new User();
+        userData.setEmail(email);
+        userData.setPasswordDigest(password);
+        userDetailsService.createUser(userData);
     }
 }

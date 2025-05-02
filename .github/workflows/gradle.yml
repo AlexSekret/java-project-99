@@ -33,6 +33,17 @@ jobs:
           fetch-depth: 0
       #- name: Check gradle version
       #  run: gradle --version
+      - name: Verify that the openssl command is present
+        run: openssl version
+      - name: Generate private key
+        with:
+          private_key: ${{ secrets.RSA_PRIVATE_KEY }}
+        run: |
+            echo private_key > src/main/resources/certs/private.pem
+            openssl rsa -in src/main/resources/certs/private.pem -pubout -out src/main/resources/certs/public.pem
+
+      - name: Secure key permissions
+        run: chmod 600 src/main/resources/certs/private.pem
 
       - name: Build with Gradle Wrapper
         run: make build

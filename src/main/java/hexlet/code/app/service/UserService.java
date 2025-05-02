@@ -7,6 +7,7 @@ import hexlet.code.app.exception.ResourceNotFoundException;
 import hexlet.code.app.mapper.UserMapper;
 import hexlet.code.app.model.User;
 import hexlet.code.app.repository.UserRepository;
+import hexlet.code.app.util.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,10 +47,10 @@ public class UserService {
     }
 
     public UserDTO update(Long id, UserUpdateDTO userDTO) {
-        User user = userRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        userMapper.update(userDTO, user);
-        userRepository.save(user);
-        return userMapper.map(user);
+        User userData = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        userMapper.update(userDTO, userData);
+        userRepository.save(userData);
+        return userMapper.map(userData);
     }
 }

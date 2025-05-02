@@ -10,6 +10,7 @@ import hexlet.code.app.repository.UserRepository;
 import net.datafaker.Faker;
 import org.instancio.Instancio;
 import org.instancio.Select;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -19,6 +20,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Description;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -41,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class UserControllerTest {
+    public static final String API_USERS = "/api/users";
     @Autowired
     private WebApplicationContext wac;
 
@@ -57,10 +62,14 @@ class UserControllerTest {
     private ObjectMapper om;
     private User fakeUser;
 
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+
     @BeforeEach
     void setUp() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(wac)
-                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8).build();
+                .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
+                .apply(springSecurity()) // добавляем Spring Security
+                .build();
 
         fakeUser = Instancio.of(User.class)
                 .ignore(Select.field(User::getId))
@@ -69,13 +78,65 @@ class UserControllerTest {
                 .supply(Select.field(User::getFirstName), () -> faker.name().firstName())
                 .supply(Select.field(User::getLastName), () -> faker.name().lastName())
                 .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
-                .supply(Select.field(User::getPassword), () -> faker.internet().password(6, 100))
+                .supply(Select.field(User::getPasswordDigest), () -> faker.internet().password(3, 100))
                 .create();
         userRepository.save(fakeUser);
+        token = jwt().jwt(builder -> builder.subject(fakeUser.getEmail()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        userRepository.deleteAll();
     }
 
     @Test
-    public void testWelcome() throws Exception {
+    void unauthenticatedAccessShouldFail() throws Exception {
+        MockHttpServletRequestBuilder request = get(API_USERS);
+        this.mockMvc.perform(request)
+                .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    void authenticatedAccessShouldSuccess() throws Exception {
+        MockHttpServletRequestBuilder request = get(API_USERS).with(token);
+        this.mockMvc.perform(request)
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    void unAuthenticatedActionsShouldFail() throws Exception {
+        long id = fakeUser.getId();
+        MockHttpServletRequestBuilder request1 = delete(API_USERS + "/" + id);
+        this.mockMvc.perform(request1)
+                .andExpect(status().isUnauthorized());
+        this.mockMvc.perform(post(API_USERS))
+                .andExpect(status().isUnauthorized());
+
+        UserUpdateDTO updateData = new UserUpdateDTO();
+        updateData.setEmail(JsonNullable.of("updated@example.com"));
+        String jsonData = om.writeValueAsString(updateData);
+        MockHttpServletRequestBuilder request2 = put(API_USERS + "/" + id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonData);
+
+        this.mockMvc.perform(request2)
+                .andExpect(status().isUnauthorized());
+        UserCreateDTO newUser = new UserCreateDTO();
+        newUser.setEmail("test@example.com");
+        newUser.setFirstName("Test");
+        newUser.setLastName("User");
+        newUser.setPassword("password123");
+        MockHttpServletRequestBuilder request3 = post(API_USERS)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(newUser));
+        this.mockMvc.perform(request3)
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void testWelcome() throws Exception {
         MockHttpServletRequestBuilder request = get("/welcome");
         MockHttpServletResponse response = this.mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -86,9 +147,9 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("when GET to /api/users check response status, content type, repository")
-    public void testIndex() throws Exception {
-        MockHttpServletRequestBuilder request = get("/api/users");
+    @Description("when GET to API_USERS check response status, content type, repository")
+    void testIndex() throws Exception {
+        MockHttpServletRequestBuilder request = get(API_USERS).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
                 .andExpectAll(
                         status().isOk(),
@@ -100,13 +161,13 @@ class UserControllerTest {
 
         List<User> expected = userRepository.findAll();
         assertEquals(expected.size(), actual.size()); //а нахер это надо?
-        // Проверяем, что все ожидаемые пользователи присутствуют в ответе
+
         expected.forEach(expectedUser -> {
             UserDTO act = actual.stream()
                     .filter(dto -> dto.getId().equals(expectedUser.getId()))
                     .findFirst()
                     .orElseThrow(() -> new AssertionError("User not found in response: " + expectedUser.getId()));
-            // Проверяем соответствие полей
+
             assertThat(act.getEmail()).isEqualTo(expectedUser.getEmail());
             assertThat(act.getFirstName()).isEqualTo(expectedUser.getFirstName());
             assertThat(act.getLastName()).isEqualTo(expectedUser.getLastName());
@@ -114,14 +175,12 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("when GET to /api/users/{id} check response status, content type, repository")
-    public void testShow() throws Exception {
-        MockHttpServletRequestBuilder request = get("/api/users/" + fakeUser.getId());
+    @Description("when GET to API_USERS/{id} check response status, content type, repository")
+    void testShow() throws Exception {
+        MockHttpServletRequestBuilder request = get(API_USERS + "/" + fakeUser.getId()).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
                 .andExpect(status().isOk()).andReturn().getResponse();
         String body = result.getContentAsString();
-        UserDTO actual = om.readValue(body, new TypeReference<>() {
-        });
         assertThatJson(body).isObject().containsKeys("id", "email", "firstName", "lastName");
         assertThatJson(body).and(
                 v -> v.node("id").isEqualTo(fakeUser.getId()),
@@ -131,14 +190,14 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("POST to /api/users should create new user and return 201 status")
-    public void testCreate() throws Exception {
+    @Description("POST to API_USERS should create new user and return 201 status")
+    void testCreate() throws Exception {
         UserCreateDTO newUser = new UserCreateDTO();
         newUser.setEmail("test@example.com");
         newUser.setFirstName("Test");
         newUser.setLastName("User");
         newUser.setPassword("password123");
-        MockHttpServletRequestBuilder request = post("/api/users")
+        MockHttpServletRequestBuilder request = post(API_USERS).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(newUser));
 
@@ -158,14 +217,15 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("PUT to /api/users/{id} should update user and return 200 status")
-    public void testUpdate() throws Exception {
+    @Description("PUT to API_USERS/{id} should update user and return 200 status")
+    void testUpdate() throws Exception {
         UserUpdateDTO updateData = new UserUpdateDTO();
         updateData.setEmail(JsonNullable.of("updated@example.com"));
         long id = fakeUser.getId();
-        MockHttpServletRequestBuilder request = put("/api/users/" + id)
+        String jsonData = om.writeValueAsString(updateData);
+        MockHttpServletRequestBuilder request = put(API_USERS + "/" + id).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(updateData));
+                .content(jsonData);
 
         MockHttpServletResponse response = mockMvc.perform(request)
                 .andExpectAll(status().isOk(),
@@ -181,21 +241,21 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("DELETE to /api/users/{id} should remove user and return 204 status")
-    public void testDelete() throws Exception {
-        mockMvc.perform(delete("/api/users/" + fakeUser.getId()))
+    @Description("DELETE to API_USERS/{id} should remove user and return 204 status")
+    void testDelete() throws Exception {
+        mockMvc.perform(delete(API_USERS + "/" + fakeUser.getId()).with(token))
                 .andExpect(status().isNoContent());
 
         assertThat(userRepository.existsById(fakeUser.getId())).isFalse();
 
-        mockMvc.perform(get("/api/users/" + fakeUser.getId()))
+        mockMvc.perform(get(API_USERS + "/" + fakeUser.getId()).with(token))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @Description("when GET to /api/users/{id} check that there is no password in the body of the response")
-    public void testPasswordNotExposed() throws Exception {
-        mockMvc.perform(get("/api/users/" + fakeUser.getId()))
+    @Description("when GET to API_USERS/{id} check that there is no password in the body of the response")
+    void testPasswordNotExposed() throws Exception {
+        mockMvc.perform(get(API_USERS + "/" + fakeUser.getId()))
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 }
