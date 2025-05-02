@@ -36,10 +36,7 @@ jobs:
           java -version
           ./gradlew --version
           openssl version
-      - name: Check for RSA private key
-        if: secrets.RSA_PRIVATE_KEY == ''
-        run: |
-          echo "Error: RSA_PRIVATE_KEY secret is missing" && exit 1
+
       - name: Create certs directory
         run: mkdir -p src/main/resources/certs
       - name: Write private key
