@@ -45,7 +45,8 @@ jobs:
         run: |
           echo "$PRIVATE_KEY" > src/main/resources/certs/private.pem
       - name: Generate public key
-        run: openssl rsa -in src/main/resources/certs/private.pem -pubout -out src/main/resources/certs/public.pem
+        run: |
+          openssl rsa -in src/main/resources/certs/private.pem -pubout -out src/main/resources/certs/public.pem
       - name: Secure key permissions
         run: |
           chmod 600 src/main/resources/certs/private.pem || true
