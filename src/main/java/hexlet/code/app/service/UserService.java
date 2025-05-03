@@ -8,6 +8,9 @@ import hexlet.code.app.mapper.UserMapper;
 import hexlet.code.app.model.User;
 import hexlet.code.app.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,5 +54,11 @@ public class UserService {
         userMapper.update(userDTO, userData);
         userRepository.save(userData);
         return userMapper.map(userData);
+    }
+
+    public Page<UserDTO> getPages(Specification<User> spec, PageRequest pageRequest) {
+        Page<User> pages = userRepository.findAll(spec, pageRequest);
+        Page<UserDTO> pageDTO = pages.map(userMapper::map);
+        return pageDTO;
     }
 }

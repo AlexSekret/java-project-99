@@ -1,5 +1,7 @@
 ---
 spring:
+  application:
+    name: app
   jpa:
     show-sql: true
     hibernate:

@@ -156,7 +156,7 @@ class UserControllerTest {
                         content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
         String body = result.getContentAsString();
-        List<UserDTO> actual = om.readValue(body, new TypeReference<>() {
+        List<UserDTO> actual = om.readValue(body, new TypeReference<List<UserDTO>>() {
         }); // конвертирует JSON в список UserDTO
 
         List<User> expected = userRepository.findAll();
