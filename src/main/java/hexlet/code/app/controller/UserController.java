@@ -3,10 +3,8 @@ package hexlet.code.app.controller;
 
 import hexlet.code.app.dto.UserCreateDTO;
 import hexlet.code.app.dto.UserDTO;
-import hexlet.code.app.dto.UserParamsDTO;
 import hexlet.code.app.dto.UserUpdateDTO;
 import hexlet.code.app.mapper.UserMapper;
-import hexlet.code.app.model.User;
 import hexlet.code.app.service.CustomUserDetailsService;
 import hexlet.code.app.service.UserService;
 import hexlet.code.app.specification.UserSpecification;
@@ -15,7 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,16 +51,23 @@ public class UserController {
 
     @GetMapping(path = "/users")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<UserDTO>> index(UserParamsDTO params, @RequestParam(defaultValue = "1") int page) {
-        Specification<User> spec = userSpecification.build(params);
-        Page<UserDTO> userPage = userService.getPages(spec, PageRequest.of(page - 1, 10));
-        // Добавляем заголовок X-Total-Count
+    public ResponseEntity<List<UserDTO>> index(
+            @RequestParam(name = "_end", defaultValue = "5") int end,
+            @RequestParam(name = "_start", defaultValue = "0") int start,
+            @RequestParam(name = "_sort", defaultValue = "id") String sort,
+            @RequestParam(name = "_order", defaultValue = "ASC") String order) {
+        int perPage = end - start;
+        int pageNumber = (int) Math.ceil((double) start / perPage);
+        Sort.Direction sotrDirection = Sort.Direction.valueOf(order);
+        Pageable pageRequest = PageRequest.of(pageNumber, perPage, sotrDirection, sort);
+        Page<UserDTO> userPages = userService.getPage(pageRequest);
+
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Total-Count", String.valueOf(userPage.getTotalElements()));
+        headers.add("X-Total-Count", String.valueOf(userPages.getTotalElements()));
 
         return ResponseEntity.ok()
                 .headers(headers)
-                .body(userPage.getContent());
+                .body(userPages.getContent());
     }
 
     @GetMapping(path = "/users/{id}")

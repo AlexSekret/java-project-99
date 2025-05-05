@@ -7,9 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-//@Profile("dev")
+@Profile("dev")
 @Component
 @AllArgsConstructor
 public class DataInitializer implements ApplicationRunner {
@@ -18,13 +19,13 @@ public class DataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        String firstName = "Admin";
-        String lastName = "Admin";
         String email = "hexlet@example.com";
-        String password = "qwerty";
-        User userData = new User();
-        userData.setEmail(email);
-        userData.setPasswordDigest(password);
-        userDetailsService.createUser(userData);
+        if (!userDetailsService.userExists(email)) {
+            String password = "qwerty";
+            User userData = new User();
+            userData.setEmail(email);
+            userData.setPasswordDigest(password);
+            userDetailsService.createUser(userData);
+        }
     }
 }
