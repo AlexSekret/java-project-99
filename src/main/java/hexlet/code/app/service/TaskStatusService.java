@@ -9,6 +9,8 @@ import hexlet.code.app.mapper.TaskStatusMapper;
 import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.repository.TaskStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -64,5 +66,10 @@ public class TaskStatusService {
         } else {
             throw new DuplicateSlugException("Task status with slug " + dto.getSlug() + " already exists");
         }
+    }
+
+    public Page<TaskStatusDTO> getPage(Pageable page) {
+        Page<TaskStatus> tasks = tsRepository.findAll(page);
+        return tasks.map(tsMapper::mapToDto);
     }
 }
