@@ -35,5 +35,5 @@ report:
 
 do-all: clean build run
 
-do-totalCheckStyle: clean lint lint-tests
+preCommit: clean lint lint-tests
 .PHONY: build

@@ -7,9 +7,8 @@ import hexlet.code.app.dto.UserDTO;
 import hexlet.code.app.dto.UserUpdateDTO;
 import hexlet.code.app.model.User;
 import hexlet.code.app.repository.UserRepository;
-import net.datafaker.Faker;
+import hexlet.code.app.util.ModelGenerator;
 import org.instancio.Instancio;
-import org.instancio.Select;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +52,7 @@ class UserControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private Faker faker;
+    private ModelGenerator modelGenerator;
 
     @Autowired
     private UserRepository userRepository;
@@ -71,15 +70,7 @@ class UserControllerTest {
                 .apply(springSecurity()) // добавляем Spring Security
                 .build();
 
-        fakeUser = Instancio.of(User.class)
-                .ignore(Select.field(User::getId))
-                .ignore(Select.field(User::getCreatedAt))
-                .ignore(Select.field(User::getUpdatedAt))
-                .supply(Select.field(User::getFirstName), () -> faker.name().firstName())
-                .supply(Select.field(User::getLastName), () -> faker.name().lastName())
-                .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
-                .supply(Select.field(User::getPasswordDigest), () -> faker.internet().password(3, 100))
-                .create();
+        fakeUser = Instancio.of(modelGenerator.getUserModel()).create();
         userRepository.save(fakeUser);
         token = jwt().jwt(builder -> builder.subject(fakeUser.getEmail()));
     }
@@ -149,6 +140,7 @@ class UserControllerTest {
     @Test
     @Description("when GET to API_USERS check response status, content type, repository")
     void testIndex() throws Exception {
+        //        TODO: rewrite
         MockHttpServletRequestBuilder request = get(API_USERS).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
                 .andExpectAll(
@@ -156,7 +148,7 @@ class UserControllerTest {
                         content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn().getResponse();
         String body = result.getContentAsString();
-        List<UserDTO> actual = om.readValue(body, new TypeReference<List<UserDTO>>() {
+        List<UserDTO> actual = om.readValue(body, new TypeReference<>() {
         }); // конвертирует JSON в список UserDTO
 
         List<User> expected = userRepository.findAll();
@@ -177,9 +169,12 @@ class UserControllerTest {
     @Test
     @Description("when GET to API_USERS/{id} check response status, content type, repository")
     void testShow() throws Exception {
+//        TODO: rewrite
         MockHttpServletRequestBuilder request = get(API_USERS + "/" + fakeUser.getId()).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
-                .andExpect(status().isOk()).andReturn().getResponse();
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn().getResponse();
         String body = result.getContentAsString();
         assertThatJson(body).isObject().containsKeys("id", "email", "firstName", "lastName");
         assertThatJson(body).and(

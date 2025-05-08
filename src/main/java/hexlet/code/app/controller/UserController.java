@@ -4,11 +4,7 @@ package hexlet.code.app.controller;
 import hexlet.code.app.dto.UserCreateDTO;
 import hexlet.code.app.dto.UserDTO;
 import hexlet.code.app.dto.UserUpdateDTO;
-import hexlet.code.app.mapper.UserMapper;
-import hexlet.code.app.service.CustomUserDetailsService;
 import hexlet.code.app.service.UserService;
-import hexlet.code.app.specification.UserSpecification;
-import hexlet.code.app.util.UserUtils;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -39,15 +35,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private UserMapper userMapper;
-    @Autowired
-    private UserUtils userUtils;
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
 
-    @Autowired
-    private UserSpecification userSpecification;
 
     @GetMapping(path = "/users")
     @ResponseStatus(HttpStatus.OK)

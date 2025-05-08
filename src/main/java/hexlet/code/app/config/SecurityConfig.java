@@ -44,8 +44,9 @@ public class SecurityConfig {
                                 "/static/**",
                                 "/assets/**",
                                 "/favicon.ico",
-                                "/index.html").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/welcome").permitAll()
+                                "/index.html",
+                                "/welcome",
+                                "/api/task_statuses").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
