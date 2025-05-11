@@ -1,5 +1,6 @@
 package hexlet.code.app.util;
 
+import hexlet.code.app.model.Task;
 import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.model.User;
 import jakarta.annotation.PostConstruct;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 public class ModelGenerator {
     private Model<User> userModel;
     private Model<TaskStatus> taskStatusModel;
+    private Model<Task> taskModel;
 
     @Autowired
     private Faker faker;
@@ -26,6 +28,7 @@ public class ModelGenerator {
                 .ignore(Select.field(User::getId))
                 .ignore(Select.field(User::getCreatedAt))
                 .ignore(Select.field(User::getUpdatedAt))
+                .ignore(Select.field(User::getTasks))
                 .supply(Select.field(User::getFirstName), () -> faker.name().firstName())
                 .supply(Select.field(User::getLastName), () -> faker.name().lastName())
                 .supply(Select.field(User::getEmail), () -> faker.internet().emailAddress())
@@ -35,8 +38,16 @@ public class ModelGenerator {
         taskStatusModel = Instancio.of(TaskStatus.class)
                 .ignore(Select.field(TaskStatus::getId))
                 .ignore(Select.field(TaskStatus::getCreatedAt))
-                .supply(Select.field(TaskStatus::getName), () -> faker.internet().slug())
+                .ignore(Select.field(TaskStatus::getTasks))
+                .supply(Select.field(TaskStatus::getName), () -> faker.lorem().word())
                 .supply(Select.field(TaskStatus::getSlug), () -> faker.internet().slug())
+                .toModel();
+        taskModel = Instancio.of(Task.class)
+                .ignore(Select.field(Task::getId))
+                .ignore(Select.field(Task::getCreatedAt))
+                .supply(Select.field(Task::getName), () -> faker.text().text(1, 10))
+                .supply(Select.field(Task::getDescription), () -> faker.text().text(1, 100))
+                .supply(Select.field(Task::getIndex), () -> faker.number().numberBetween(1, 5000))
                 .toModel();
     }
 }

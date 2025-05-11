@@ -4,13 +4,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.app.dto.TaskStatusCreateDTO;
 import hexlet.code.app.dto.TaskStatusDTO;
 import hexlet.code.app.dto.TaskStatusUpdateDTO;
+import hexlet.code.app.model.Task;
 import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.model.User;
+import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.util.ModelGenerator;
 import static org.hamcrest.Matchers.hasItem;
 import org.instancio.Instancio;
+import org.instancio.Select;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,16 +38,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SpringBootTest
+@Transactional
 @AutoConfigureMockMvc
 class TaskStatusControllerTest {
     public static final String API_TASK_STATUSES = "/api/task_statuses";
+    public static final String DEFAULT_QUERY = "?_end=10&_order=ASC&_sort=id&_start=0";
     @Autowired
     private WebApplicationContext wac;
 
@@ -59,13 +66,16 @@ class TaskStatusControllerTest {
 
     @Autowired
     private ObjectMapper om;
-
+    @Autowired
+    private TaskRepository taskRepository;
     @Autowired
     private UserRepository userRepository;
-    private TaskStatus fts; // fake task status
-    private User fakeUser;
+    private TaskStatus status; // fake task status
+    private Task task;
+    private User user;
 
     private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+    private TaskStatus status1;
 
     @BeforeEach
     void setUp() {
@@ -73,46 +83,60 @@ class TaskStatusControllerTest {
                 .defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
                 .apply(springSecurity()) // добавляем Spring Security
                 .build();
-        fakeUser = Instancio.of(modelGenerator.getUserModel()).create();
-        fts = Instancio.of(modelGenerator.getTaskStatusModel()).create();
-        userRepository.save(fakeUser);
-        taskStatusRepository.save(fts);
-        token = jwt().jwt(builder -> builder.subject(fakeUser.getEmail()));
+
+        user = Instancio.of(modelGenerator.getUserModel()).create();
+
+        status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
+
+        task = Instancio.of(modelGenerator.getTaskModel())
+                .set(Select.field(Task::getTaskStatus), status)
+                .set(Select.field(Task::getAssignee), user)
+                .create();
+        user.addTask(task);
+        status.addTask(task);
+        userRepository.save(user);
+        taskStatusRepository.save(status);
+        taskRepository.save(task);
+        token = jwt().jwt(builder -> builder.subject(user.getEmail()));
+        status1 = new TaskStatus();
+        status1.setName("Status 1");
+        status1.setSlug("status_1");
+        taskStatusRepository.save(status1);
     }
 
     @AfterEach
     void tearDown() {
+        taskRepository.deleteAll(); // Сначала удаляем Task
         userRepository.deleteAll();
         taskStatusRepository.deleteAll();
     }
 
     @Test
     void testShow() throws Exception {
-        MockHttpServletRequestBuilder request = get(API_TASK_STATUSES + "/" + fts.getId()).with(token);
+        MockHttpServletRequestBuilder request = get(API_TASK_STATUSES + "/" + status.getId()).with(token);
         this.mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value(fts.getName()))
-                .andExpect(jsonPath("$.slug").value(fts.getSlug()));
+                .andExpect(jsonPath("$.name").value(status.getName()))
+                .andExpect(jsonPath("$.slug").value(status.getSlug()));
     }
 
     //    GET /api/task_statuses
     @Test
     void testIndex() throws Exception {
-        TaskStatus status1 = new TaskStatus();
-        status1.setName("Status 1");
-        status1.setSlug("status_1");
-        taskStatusRepository.save(status1);
 
-        MockHttpServletRequestBuilder request = get(API_TASK_STATUSES).with(token);
+        List<TaskStatus> statuses = taskStatusRepository.findAll();
+        assertTrue(statuses.stream().anyMatch(s -> s.getName().equals("Status 1")));
+        assertTrue(statuses.stream().anyMatch(s -> s.getSlug().equals("status_1")));
+        MockHttpServletRequestBuilder request = get(API_TASK_STATUSES + DEFAULT_QUERY).with(token);
         this.mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[*].name").value(hasItem("Status 1")))
                 .andExpect(jsonPath("$[*].slug").value(hasItem("status_1")))
-                .andExpect(jsonPath("$[*].name").value(hasItem(fts.getName())))
-                .andExpect(jsonPath("$[*].slug").value(hasItem(fts.getSlug())));
+                .andExpect(jsonPath("$[*].name").value(hasItem(status.getName())))
+                .andExpect(jsonPath("$[*].slug").value(hasItem(status.getSlug())));
     }
 
     @Test
@@ -135,7 +159,7 @@ class TaskStatusControllerTest {
         Map<String, String> updates = new HashMap<>();
         updates.put("name", "New Name");
         updates.put("slug", "new_slug");
-        MockHttpServletRequestBuilder request = put(API_TASK_STATUSES + "/" + fts.getId()).with(token)
+        MockHttpServletRequestBuilder request = put(API_TASK_STATUSES + "/" + status.getId()).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(updates));
 
@@ -143,33 +167,33 @@ class TaskStatusControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("New Name"))
                 .andExpect(jsonPath("$.slug").value("new_slug"));
-        String actualName = taskStatusRepository.findById(fts.getId()).get().getName();
-        String actualSlug = taskStatusRepository.findById(fts.getId()).get().getSlug();
-        Long actualId = taskStatusRepository.findById(fts.getId()).get().getId();
+        String actualName = taskStatusRepository.findById(status.getId()).get().getName();
+        String actualSlug = taskStatusRepository.findById(status.getId()).get().getSlug();
+        Long actualId = taskStatusRepository.findById(status.getId()).get().getId();
         assertEquals(updates.get("name"), actualName);
         assertEquals(updates.get("slug"), actualSlug);
-        assertEquals(fts.getId(), actualId);
+        assertEquals(status.getId(), actualId);
     }
 
     @Test
     void testPartialUpdate() throws Exception {
-        Long actualId = taskStatusRepository.findById(fts.getId()).get().getId();
+        Long actualId = taskStatusRepository.findById(status.getId()).get().getId();
         Map<String, String> updateName = new HashMap<>();
         updateName.put("name", "New Name");
-        MockHttpServletRequestBuilder updateNameRequest = put(API_TASK_STATUSES + "/" + fts.getId())
+        MockHttpServletRequestBuilder updateNameRequest = put(API_TASK_STATUSES + "/" + status.getId())
                 .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(updateName));
-        String originalSlug = taskStatusRepository.findById(fts.getId()).get().getSlug();
+        String originalSlug = taskStatusRepository.findById(status.getId()).get().getSlug();
         this.mockMvc.perform(updateNameRequest)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(updateName.get("name")))
                 .andExpect(jsonPath("$.slug").value(originalSlug));
-        String actualName = taskStatusRepository.findById(fts.getId()).get().getName();
+        String actualName = taskStatusRepository.findById(status.getId()).get().getName();
         assertEquals(updateName.get("name"), actualName);
         Map<String, String> updateSlug = new HashMap<>();
         updateSlug.put("slug", "new_slug");
-        MockHttpServletRequestBuilder updateSlugRequest = put(API_TASK_STATUSES + "/" + fts.getId())
+        MockHttpServletRequestBuilder updateSlugRequest = put(API_TASK_STATUSES + "/" + status.getId())
                 .with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(updateSlug));
@@ -178,9 +202,9 @@ class TaskStatusControllerTest {
                 .andExpect(jsonPath("$.name").value(updateName.get("name")))
                 .andExpect(jsonPath("$.slug").value(updateSlug.get("slug")));
 
-        String updatedSlug = taskStatusRepository.findById(fts.getId()).get().getSlug();
+        String updatedSlug = taskStatusRepository.findById(status.getId()).get().getSlug();
         assertEquals(updateSlug.get("slug"), updatedSlug);
-        assertEquals(fts.getId(), actualId);
+        assertEquals(status.getId(), actualId);
     }
 
 
@@ -215,13 +239,13 @@ class TaskStatusControllerTest {
         TaskStatusUpdateDTO updateData = new TaskStatusUpdateDTO();
         updateData.setSlug(JsonNullable.of("new_slug"));
         String jsonData = om.writeValueAsString(updateData);
-        MockHttpServletRequestBuilder updateRequest = put(API_TASK_STATUSES + "/" + fakeUser.getId())
+        MockHttpServletRequestBuilder updateRequest = put(API_TASK_STATUSES + "/" + user.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonData);
         this.mockMvc.perform(updateRequest)
                 .andExpect(status().isUnauthorized());
         //delete
-        MockHttpServletRequestBuilder deleteRequest = delete(API_TASK_STATUSES + "/" + fakeUser.getId());
+        MockHttpServletRequestBuilder deleteRequest = delete(API_TASK_STATUSES + "/" + user.getId());
         this.mockMvc.perform(deleteRequest)
                 .andExpect(status().isUnauthorized());
     }
@@ -230,7 +254,7 @@ class TaskStatusControllerTest {
     void shouldNotCreateStatusWithDuplicateSlug() throws Exception {
         TaskStatusDTO createDto = new TaskStatusDTO();
         createDto.setName("To Create");
-        createDto.setSlug(fts.getSlug());
+        createDto.setSlug(status.getSlug());
         this.mockMvc.perform(post(API_TASK_STATUSES).with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(createDto)))
@@ -239,15 +263,15 @@ class TaskStatusControllerTest {
 
     @Test
     void shouldNotUpdateStatusByDuplicateSlug() throws Exception {
-        String originName = taskStatusRepository.findById(fts.getId()).get().getName();
+        String originName = taskStatusRepository.findById(status.getId()).get().getName();
         TaskStatusUpdateDTO updateDto = new TaskStatusUpdateDTO();
         updateDto.setName(JsonNullable.of("To Create"));
-        updateDto.setSlug(JsonNullable.of(fts.getSlug()));
-        this.mockMvc.perform(put(API_TASK_STATUSES + "/" + fts.getId()).with(token)
+        updateDto.setSlug(JsonNullable.of(status.getSlug()));
+        this.mockMvc.perform(put(API_TASK_STATUSES + "/" + status.getId()).with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(updateDto)))
                 .andExpect(status().isBadRequest());
-        String actualName = taskStatusRepository.findById(fts.getId()).get().getName();
+        String actualName = taskStatusRepository.findById(status.getId()).get().getName();
         assertEquals(originName, actualName);
     }
 
@@ -281,7 +305,7 @@ class TaskStatusControllerTest {
         Map<String, String> updates = new HashMap<>();
         updates.put("slug", "");  // Пустой slug
 
-        mockMvc.perform(put(API_TASK_STATUSES + "/" + fts.getId()).with(token)
+        mockMvc.perform(put(API_TASK_STATUSES + "/" + status.getId()).with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(om.writeValueAsString(updates)))
                 .andExpect(status().isBadRequest());

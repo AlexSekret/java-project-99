@@ -5,10 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.app.dto.UserCreateDTO;
 import hexlet.code.app.dto.UserDTO;
 import hexlet.code.app.dto.UserUpdateDTO;
+import hexlet.code.app.model.Task;
+import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.model.User;
+import hexlet.code.app.repository.TaskRepository;
+import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.util.ModelGenerator;
 import org.instancio.Instancio;
+import org.instancio.InstancioApi;
+import org.instancio.Select;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +31,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
@@ -43,6 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class UserControllerTest {
     public static final String API_USERS = "/api/users";
     @Autowired
@@ -55,13 +63,21 @@ class UserControllerTest {
     private ModelGenerator modelGenerator;
 
     @Autowired
-    private UserRepository userRepository;
+    private TaskStatusRepository taskStatusRepository;
 
     @Autowired
     private ObjectMapper om;
-    private User fakeUser;
+    @Autowired
+    private TaskRepository taskRepository;
+    @Autowired
+    private UserRepository userRepository;
+    private TaskStatus status; // fake task status
+    private Task task;
+    private User user;
 
     private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
+    private User userWithNoTasks;
+    private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor userWithNoTasksToken;
 
     @BeforeEach
     void setUp() {
@@ -70,14 +86,30 @@ class UserControllerTest {
                 .apply(springSecurity()) // добавляем Spring Security
                 .build();
 
-        fakeUser = Instancio.of(modelGenerator.getUserModel()).create();
-        userRepository.save(fakeUser);
-        token = jwt().jwt(builder -> builder.subject(fakeUser.getEmail()));
+        user = Instancio.of(modelGenerator.getUserModel()).create();
+        userWithNoTasks = Instancio.of(modelGenerator.getUserModel()).create();
+
+        status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
+
+        task = Instancio.of(modelGenerator.getTaskModel())
+                .set(Select.field(Task::getTaskStatus), status)
+                .set(Select.field(Task::getAssignee), user)
+                .create();
+        user.addTask(task);
+        status.addTask(task);
+        taskRepository.save(task);
+        userRepository.save(user);
+        taskStatusRepository.save(status);
+        token = jwt().jwt(builder -> builder.subject(user.getEmail()));
+        userWithNoTasksToken = jwt().jwt(builder -> builder.subject(userWithNoTasks.getEmail()));
+        userRepository.save(userWithNoTasks);
     }
 
     @AfterEach
     void tearDown() {
+        taskRepository.deleteAll(); // Сначала удаляем Task
         userRepository.deleteAll();
+        taskStatusRepository.deleteAll();
     }
 
     @Test
@@ -98,7 +130,7 @@ class UserControllerTest {
 
     @Test
     void unAuthenticatedActionsShouldFail() throws Exception {
-        long id = fakeUser.getId();
+        long id = user.getId();
         MockHttpServletRequestBuilder request1 = delete(API_USERS + "/" + id);
         this.mockMvc.perform(request1)
                 .andExpect(status().isUnauthorized());
@@ -170,7 +202,7 @@ class UserControllerTest {
     @Description("when GET to API_USERS/{id} check response status, content type, repository")
     void testShow() throws Exception {
 //        TODO: rewrite
-        MockHttpServletRequestBuilder request = get(API_USERS + "/" + fakeUser.getId()).with(token);
+        MockHttpServletRequestBuilder request = get(API_USERS + "/" + user.getId()).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -178,10 +210,10 @@ class UserControllerTest {
         String body = result.getContentAsString();
         assertThatJson(body).isObject().containsKeys("id", "email", "firstName", "lastName");
         assertThatJson(body).and(
-                v -> v.node("id").isEqualTo(fakeUser.getId()),
-                v -> v.node("email").isEqualTo(fakeUser.getEmail()),
-                v -> v.node("firstName").isEqualTo(fakeUser.getFirstName()),
-                v -> v.node("lastName").isEqualTo(fakeUser.getLastName()));
+                v -> v.node("id").isEqualTo(user.getId()),
+                v -> v.node("email").isEqualTo(user.getEmail()),
+                v -> v.node("firstName").isEqualTo(user.getFirstName()),
+                v -> v.node("lastName").isEqualTo(user.getLastName()));
     }
 
     @Test
@@ -215,8 +247,9 @@ class UserControllerTest {
     @Description("PUT to API_USERS/{id} should update user and return 200 status")
     void testUpdate() throws Exception {
         UserUpdateDTO updateData = new UserUpdateDTO();
+        User u = user;
         updateData.setEmail(JsonNullable.of("updated@example.com"));
-        long id = fakeUser.getId();
+        long id = user.getId();
         String jsonData = om.writeValueAsString(updateData);
         MockHttpServletRequestBuilder request = put(API_USERS + "/" + id).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -236,21 +269,29 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("DELETE to API_USERS/{id} should remove user and return 204 status")
+    @Description("If user has no tasks DELETE to /api/users/{id} should remove user and return 204 status")
     void testDelete() throws Exception {
-        mockMvc.perform(delete(API_USERS + "/" + fakeUser.getId()).with(token))
+        userRepository.save(userWithNoTasks);
+        mockMvc.perform(delete(API_USERS + "/" + userWithNoTasks.getId()).with(userWithNoTasksToken))
                 .andExpect(status().isNoContent());
 
-        assertThat(userRepository.existsById(fakeUser.getId())).isFalse();
+        assertThat(userRepository.existsById(userWithNoTasks.getId())).isFalse();
 
-        mockMvc.perform(get(API_USERS + "/" + fakeUser.getId()).with(token))
+        mockMvc.perform(get(API_USERS + "/" + userWithNoTasks.getId()).with(userWithNoTasksToken))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Description("when DELETE to /api/users//{id} check that user can't be deleted if he has tasks")
+    void testDeleteWithTasks() throws Exception {
+        mockMvc.perform(delete(API_USERS + "/" + user.getId()).with(token))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     @Description("when GET to API_USERS/{id} check that there is no password in the body of the response")
     void testPasswordNotExposed() throws Exception {
-        mockMvc.perform(get(API_USERS + "/" + fakeUser.getId()))
+        mockMvc.perform(get(API_USERS + "/" + user.getId()))
                 .andExpect(jsonPath("$.password").doesNotExist());
     }
 }

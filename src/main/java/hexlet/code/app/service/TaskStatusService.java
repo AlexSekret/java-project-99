@@ -5,6 +5,7 @@ import hexlet.code.app.dto.TaskStatusDTO;
 import hexlet.code.app.dto.TaskStatusUpdateDTO;
 import hexlet.code.app.exception.DuplicateSlugException;
 import hexlet.code.app.exception.ResourceNotFoundException;
+import hexlet.code.app.exception.StatusHasAssociatedTasksException;
 import hexlet.code.app.mapper.TaskStatusMapper;
 import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.repository.TaskStatusRepository;
@@ -38,7 +39,13 @@ public class TaskStatusService {
     }
 
     public void deleteById(Long id) {
-        tsRepository.deleteById(id);
+        TaskStatus taskStatus = tsRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Task status with id " + id + " not found"));
+        if (taskStatus.getTasks().isEmpty()) {
+            tsRepository.deleteById(id);
+        } else {
+            throw new StatusHasAssociatedTasksException("Task Status with id " + id + " has task and can't be deleted");
+        }
     }
 
     public TaskStatusDTO create(TaskStatusCreateDTO dto) {

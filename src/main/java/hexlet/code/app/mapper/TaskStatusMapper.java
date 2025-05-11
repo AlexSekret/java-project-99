@@ -11,13 +11,15 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(
-        uses = {JsonNullableMapper.class},
+        uses = {JsonNullableMapper.class, ReferenceMapper.class},
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 public abstract class TaskStatusMapper {
     public abstract TaskStatusDTO mapToDto(TaskStatus model);
+
+    public abstract TaskStatus mapToModel(TaskStatusDTO dto);
 
     public abstract TaskStatus mapToModel(TaskStatusCreateDTO dto);
 

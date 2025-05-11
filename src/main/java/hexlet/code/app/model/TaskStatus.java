@@ -1,11 +1,13 @@
 package hexlet.code.app.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +19,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "task_statuses")
@@ -24,7 +28,7 @@ import java.time.LocalDate;
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @EntityListeners(AuditingEntityListener.class)
-public class TaskStatus {
+public class TaskStatus implements BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +44,24 @@ public class TaskStatus {
     @NotBlank
     private String slug;
 
+    @OneToMany(mappedBy = "taskStatus", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
+
     @CreatedDate
     private LocalDate createdAt;
+
+    public void addTask(Task task) {
+        if (tasks.contains(task)) {
+            return;
+        }
+        tasks.add(task);
+        task.setTaskStatus(this);
+    }
+
+    public void removeTask(Task task) {
+        if (tasks.contains(task)) {
+            tasks.remove(task);
+            task.setTaskStatus(null);
+        }
+    }
 }
