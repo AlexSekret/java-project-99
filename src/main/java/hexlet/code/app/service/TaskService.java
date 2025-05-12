@@ -2,6 +2,7 @@ package hexlet.code.app.service;
 
 import hexlet.code.app.dto.TaskCreateDTO;
 import hexlet.code.app.dto.TaskDTO;
+import hexlet.code.app.dto.TaskUpdateDTO;
 import hexlet.code.app.exception.ResourceNotFoundException;
 import hexlet.code.app.mapper.TaskMapper;
 import hexlet.code.app.model.Task;
@@ -10,7 +11,6 @@ import hexlet.code.app.model.User;
 import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +48,7 @@ public class TaskService {
         return taskMapper.toTaskDTO(task);
     }
 
-    public TaskDTO create(@Valid TaskCreateDTO dto) {
+    public TaskDTO create(TaskCreateDTO dto) {
         String slug = dto.getStatus();
         Task entity = taskMapper.toTaskModel(dto);
         Long assigneeId = dto.getAssigneeId();
@@ -60,6 +60,21 @@ public class TaskService {
         entity.setAssignee(assignee);
         taskRepository.save(entity);
         TaskDTO result = taskMapper.toTaskDTO(entity);
+        return result;
+    }
+
+    public void deleteById(Long id) {
+        Task task = taskRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
+        taskRepository.deleteById(id);
+    }
+
+    public TaskDTO update(Long id, TaskUpdateDTO dto) {
+        Task task = taskRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
+        taskMapper.update(dto, task);
+        taskRepository.save(task);
+        TaskDTO result = taskMapper.toTaskDTO(task);
         return result;
     }
 }

@@ -13,7 +13,6 @@ import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.util.ModelGenerator;
 import org.instancio.Instancio;
-import org.instancio.InstancioApi;
 import org.instancio.Select;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +21,6 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Description;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -170,7 +168,6 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("when GET to API_USERS check response status, content type, repository")
     void testIndex() throws Exception {
         //        TODO: rewrite
         MockHttpServletRequestBuilder request = get(API_USERS).with(token);
@@ -199,7 +196,6 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("when GET to API_USERS/{id} check response status, content type, repository")
     void testShow() throws Exception {
 //        TODO: rewrite
         MockHttpServletRequestBuilder request = get(API_USERS + "/" + user.getId()).with(token);
@@ -217,7 +213,6 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("POST to API_USERS should create new user and return 201 status")
     void testCreate() throws Exception {
         UserCreateDTO newUser = new UserCreateDTO();
         newUser.setEmail("test@example.com");
@@ -244,7 +239,6 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("PUT to API_USERS/{id} should update user and return 200 status")
     void testUpdate() throws Exception {
         UserUpdateDTO updateData = new UserUpdateDTO();
         User u = user;
@@ -269,7 +263,6 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("If user has no tasks DELETE to /api/users/{id} should remove user and return 204 status")
     void testDelete() throws Exception {
         userRepository.save(userWithNoTasks);
         mockMvc.perform(delete(API_USERS + "/" + userWithNoTasks.getId()).with(userWithNoTasksToken))
@@ -282,14 +275,12 @@ class UserControllerTest {
     }
 
     @Test
-    @Description("when DELETE to /api/users//{id} check that user can't be deleted if he has tasks")
     void testDeleteWithTasks() throws Exception {
         mockMvc.perform(delete(API_USERS + "/" + user.getId()).with(token))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @Description("when GET to API_USERS/{id} check that there is no password in the body of the response")
     void testPasswordNotExposed() throws Exception {
         mockMvc.perform(get(API_USERS + "/" + user.getId()))
                 .andExpect(jsonPath("$.password").doesNotExist());
