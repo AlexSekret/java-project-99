@@ -1,17 +1,12 @@
 package hexlet.code.app.controller;
 
-
 import hexlet.code.app.dto.UserCreateDTO;
 import hexlet.code.app.dto.UserDTO;
 import hexlet.code.app.dto.UserUpdateDTO;
+import hexlet.code.app.service.PaginationService;
 import hexlet.code.app.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +30,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private PaginationService paginationService;
 
     @GetMapping(path = "/users")
     @ResponseStatus(HttpStatus.OK)
@@ -44,18 +40,7 @@ public class UserController {
             @RequestParam(name = "_start", defaultValue = "0") int start,
             @RequestParam(name = "_sort", defaultValue = "id") String sort,
             @RequestParam(name = "_order", defaultValue = "ASC") String order) {
-        int perPage = end - start;
-        int pageNumber = (int) Math.ceil((double) start / perPage);
-        Sort.Direction sotrDirection = Sort.Direction.valueOf(order);
-        Pageable pageRequest = PageRequest.of(pageNumber, perPage, sotrDirection, sort);
-        Page<UserDTO> userPages = userService.getPage(pageRequest);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Total-Count", String.valueOf(userPages.getTotalElements()));
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(userPages.getContent());
+        return paginationService.getPaginatedResponse(end, start, sort, order, userService::getPage);
     }
 
     @GetMapping(path = "/users/{id}")

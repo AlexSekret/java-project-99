@@ -3,14 +3,10 @@ package hexlet.code.app.controller;
 import hexlet.code.app.dto.TaskCreateDTO;
 import hexlet.code.app.dto.TaskDTO;
 import hexlet.code.app.dto.TaskUpdateDTO;
+import hexlet.code.app.service.PaginationService;
 import hexlet.code.app.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,6 +27,8 @@ import java.util.List;
 public class TaskController {
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private PaginationService paginationService;
 
     @GetMapping(path = "/tasks/{id}")
     @ResponseStatus(HttpStatus.OK)
@@ -45,16 +43,7 @@ public class TaskController {
             @RequestParam(name = "_start", defaultValue = "0") int start,
             @RequestParam(name = "_sort", defaultValue = "index") String sort,
             @RequestParam(name = "_order", defaultValue = "ASC") String order) {
-        int perPage = end - start;
-        int pageNumber = (int) Math.ceil((double) start / perPage);
-        Sort.Direction sotrDirection = Sort.Direction.valueOf(order);
-        Pageable pageRequest = PageRequest.of(pageNumber, perPage, sotrDirection, sort);
-        Page<TaskDTO> page = taskService.getPage(pageRequest);
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Total-Count", String.valueOf(page.getTotalElements()));
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(page.getContent());
+        return paginationService.getPaginatedResponse(end, start, sort, order, taskService::getPage);
     }
 
     @PostMapping(path = "/tasks")
