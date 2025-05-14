@@ -1,13 +1,15 @@
 package hexlet.code.app.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,47 +25,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "tasks")
+@Table(name = "labels")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class Task implements BaseEntity {
+public class Label {
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Size(min = 1)
+    @Column(unique = true, nullable = false)
+    @Size(min = 3, max = 1000)
     private String name;
-    private Integer index;
-    private String description;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private TaskStatus taskStatus;
+    @ManyToMany(cascade = CascadeType.MERGE)
+    @JoinTable(name = "task_labels",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "label_id"))
+    private List<Task> tasks = new ArrayList<>();
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private User assignee;
-
-    @ManyToMany(mappedBy = "tasks")
-    private List<Label> labels = new ArrayList<>();
     @CreatedDate
     private LocalDate createdAt;
-
-    public void addLabel(Label label) {
-        if (labels.contains(label)) {
-            return;
-        }
-        labels.add(label);
-        label.getTasks().add(this);
-    }
-
-    public void removeLabel(Label label) {
-        if (labels.contains(label)) {
-            labels.remove(label);
-            label.getTasks().remove(this);
-        }
-    }
 }

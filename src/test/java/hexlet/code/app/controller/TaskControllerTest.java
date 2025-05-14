@@ -157,7 +157,6 @@ class TaskControllerTest {
 
     }
 
-    // добавлять, редактировать
     @Test
     void createTest() throws Exception {
         TaskCreateDTO newTask = new TaskCreateDTO();
