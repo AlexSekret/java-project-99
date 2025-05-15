@@ -2,6 +2,7 @@ package hexlet.code.app.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.app.dto.LabelCreateDTO;
+import hexlet.code.app.dto.LabelUpdateDTO;
 import hexlet.code.app.model.Label;
 import hexlet.code.app.model.Task;
 import hexlet.code.app.model.TaskStatus;
@@ -31,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
-import java.security.cert.Extension;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -155,11 +155,56 @@ class LabelControllerTest {
     }
 
     @Test
+    void updateTest() throws Exception {
+        String oldName = label.getName();
+        LabelUpdateDTO update = new LabelUpdateDTO();
+        update.setName("newLabel");
+        MockHttpServletRequestBuilder request = put(API_LABELS + "/" + label.getId()).with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(update));
+        this.mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(label.getId()))
+                .andExpect(jsonPath("$.name").value(update.getName()));
+        assertEquals(labelRepository.findById(label.getId()).get().getName(), update.getName());
+    }
+
+    @Test
+    void updateNonExistingLabelTest() throws Exception {
+        String oldName = label.getName();
+        LabelUpdateDTO update = new LabelUpdateDTO();
+        update.setName("newLabel");
+        MockHttpServletRequestBuilder request = put(API_LABELS + "/" + NON_EXIST_LABEL).with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(update));
+        this.mockMvc.perform(request)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void deleteTest() throws Exception {
-        MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + label.getId()).with(token);
+        Label newLabel = Instancio.of(modelGenerator.getLabelModel()).create();
+        labelRepository.save(newLabel);
+        MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + newLabel.getId()).with(token);
         this.mockMvc.perform(request)
                 .andExpect(status().isNoContent());
-        assertTrue(labelRepository.findById(label.getId()).isEmpty());
+        assertTrue(labelRepository.findById(newLabel.getId()).isEmpty());
+    }
+
+    @Test
+    void deleteLabelWithTaskTest() throws Exception {
+        MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + label.getId()).with(token);
+        this.mockMvc.perform(request)
+                .andExpect(status().isBadRequest());
+        assertTrue(labelRepository.findById(label.getId()).isPresent());
+    }
+
+    @Test
+    void deleteNonExistentLabelTest() throws Exception {
+        MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + NON_EXIST_LABEL).with(token);
+        this.mockMvc.perform(request)
+                .andExpect(status().isBadRequest());
     }
 
     @Test
