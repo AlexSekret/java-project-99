@@ -52,18 +52,16 @@ public class Task implements BaseEntity {
     @CreatedDate
     private LocalDate createdAt;
 
-    public void addLabel(Label label) {
-        if (labels.contains(label)) {
-            return;
-        }
-        labels.add(label);
-        label.getTasks().add(this);
-    }
-
-    public void removeLabel(Label label) {
-        if (labels.contains(label)) {
-            labels.remove(label);
-            label.getTasks().remove(this);
-        }
-    }
+//    public void addLabels(List<Label> labelsList) {
+//        if (labelsList == null) {
+//            return;
+//        }
+//        List<Label> newLabel = labelsList.stream()
+//                .filter(label -> !labels.contains(label))
+//                .toList();
+//        this.labels.addAll(newLabel);
+//        for (Label label : labels) {
+//            label.getTasks().add(this);
+//        }
+//    }
 }

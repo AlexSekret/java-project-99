@@ -1,6 +1,6 @@
 package hexlet.code.app.handler;
 
-import hexlet.code.app.exception.DuplicateSlugException;
+import hexlet.code.app.exception.DuplicateEntitySaveException;
 import hexlet.code.app.exception.ResourceNotFoundException;
 import hexlet.code.app.exception.StatusHasAssociatedTasksException;
 import hexlet.code.app.exception.UserHasAssociatedTasksException;
@@ -17,8 +17,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
-    @ExceptionHandler(DuplicateSlugException.class)
-    public ResponseEntity<String> handleDuplicateSlugException(DuplicateSlugException ex) {
+    @ExceptionHandler(DuplicateEntitySaveException.class)
+    public ResponseEntity<String> handleDuplicateSlugException(DuplicateEntitySaveException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 

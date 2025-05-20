@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -92,7 +93,7 @@ class LabelControllerTest {
                 .create();
 
 
-        task.addLabel(label);
+        task.setLabels(List.of(label));
         user.addTask(task);
         status.addTask(task);
         taskRepository.save(task);
