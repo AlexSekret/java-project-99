@@ -1,6 +1,5 @@
 package hexlet.code.app.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -49,19 +48,4 @@ public class TaskStatus implements BaseEntity {
 
     @CreatedDate
     private LocalDate createdAt;
-
-    public void addTask(Task task) {
-        if (tasks.contains(task)) {
-            return;
-        }
-        tasks.add(task);
-        task.setTaskStatus(this);
-    }
-
-    public void removeTask(Task task) {
-        if (tasks.contains(task)) {
-            tasks.remove(task);
-            task.setTaskStatus(null);
-        }
-    }
 }

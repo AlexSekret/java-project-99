@@ -1,6 +1,5 @@
 package hexlet.code.app.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -67,21 +66,6 @@ public class User implements BaseEntity, UserDetails {
 
     @LastModifiedDate
     private LocalDate updatedAt;
-
-    public void addTask(Task task) {
-        if (tasks.contains(task)) {
-            return;
-        }
-        tasks.add(task);
-        task.setAssignee(this);
-    }
-
-    public void removeTask(Task task) {
-        if (tasks.contains(task)) {
-            tasks.remove(task);
-            task.setAssignee(null);
-        }
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
