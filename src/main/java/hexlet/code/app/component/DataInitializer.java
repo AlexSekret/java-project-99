@@ -14,7 +14,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 //@Profile("dev")
 @Component
@@ -52,11 +54,13 @@ public class DataInitializer implements ApplicationRunner {
                 taskRepository.save(taskStatus);
             }
         });
-        String labelName = "initial label";
-        Label label = new Label();
-        label.setName(labelName);
-        if (labelRepository.findByName(label.getName()).isEmpty()) {
-            labelRepository.save(label);
-        }
+        Set<String> labels = new HashSet<>(Set.of("feature", "bug"));
+        labels.forEach(label -> {
+            if (labelRepository.findByName(label).isEmpty()) {
+                Label l = new Label();
+                l.setName(label);
+                labelRepository.save(l);
+            }
+        });
     }
 }
