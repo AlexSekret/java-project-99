@@ -11,6 +11,7 @@ import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.util.ModelGenerator;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import org.instancio.Instancio;
 import org.instancio.Select;
@@ -42,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 @SpringBootTest
 @Transactional
@@ -165,10 +167,12 @@ class TaskControllerTest {
         newTask.setTitle("New very important Task");
         newTask.setContent("New very important Task content");
         newTask.setStatus("draft");
+        newTask.setTaskLabelIds(Set.of(1L));
         MockHttpServletRequestBuilder createRequest = post(API_TASKS).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(newTask));
         String response = this.mockMvc.perform(createRequest)
+                .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").isNumber())
@@ -177,6 +181,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.title").value(newTask.getTitle()))
                 .andExpect(jsonPath("$.content").value(newTask.getContent()))
                 .andExpect(jsonPath("$.status").value(newTask.getStatus()))
+                .andExpect(jsonPath("$.taskLabelIds").value(1))
                 .andReturn().getResponse().getContentAsString();
         TaskDTO taskDTO = om.readValue(response, TaskDTO.class);
         assertTrue(taskRepository.existsById(taskDTO.getId()));

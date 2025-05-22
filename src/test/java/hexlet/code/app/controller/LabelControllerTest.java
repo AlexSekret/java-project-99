@@ -27,6 +27,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -137,10 +138,11 @@ class LabelControllerTest {
         MockHttpServletRequestBuilder request = get(API_LABELS).with(token);
         this.mockMvc.perform(request)
                 .andExpect(status().isOk())
+                .andDo(print())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(label.getId()))
-                .andExpect(jsonPath("$[0].name").value(label.getName()));
+                .andExpect(jsonPath("$[-1].id").value(label.getId()))
+                .andExpect(jsonPath("$[-1].name").value(label.getName()));
     }
 
     @Test
@@ -163,9 +165,8 @@ class LabelControllerTest {
 
     @Test
     void updateTest() throws Exception {
-        String oldName = label.getName();
         LabelUpdateDTO update = new LabelUpdateDTO();
-        update.setName("newLabel");
+        update.setName("new_label");
         MockHttpServletRequestBuilder request = put(API_LABELS + "/" + label.getId()).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(update));
@@ -191,7 +192,6 @@ class LabelControllerTest {
 
     @Test
     void deleteTest() throws Exception {
-        labelRepository.deleteAll();
         Label newLabel = Instancio.of(modelGenerator.getLabelModel()).create();
         labelRepository.save(newLabel);
         MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + newLabel.getId()).with(token);
@@ -212,7 +212,7 @@ class LabelControllerTest {
     void deleteNonExistentLabelTest() throws Exception {
         MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + NON_EXIST_LABEL).with(token);
         this.mockMvc.perform(request)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 
     @Test
