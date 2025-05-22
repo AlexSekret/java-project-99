@@ -56,16 +56,50 @@ public class Task implements BaseEntity {
     @CreatedDate
     private LocalDate createdAt;
 
-//    public void addLabels(List<Label> labelsList) {
-//        if (labelsList == null) {
-//            return;
-//        }
-//        List<Label> newLabel = labelsList.stream()
-//                .filter(label -> !labels.contains(label))
-//                .toList();
-//        this.labels.addAll(newLabel);
-//        for (Label label : labels) {
-//            label.getTasks().add(this);
-//        }
-//    }
+    public void addTaskStatus(TaskStatus newStatus) {
+        // Удаляем связь с текущим статусом
+        if (this.taskStatus != null) {
+            this.taskStatus.getTasks().remove(this);
+        }
+
+        // Устанавливаем новую связь
+        this.taskStatus = newStatus;
+
+        // Обновляем обратную сторону
+        if (newStatus != null) {
+            newStatus.getTasks().add(this);
+        }
+    }
+
+    public void addAssignee(User newAssignee) {
+        // Удаляем связь с текущим пользователем
+        if (this.assignee != null) {
+            this.assignee.getTasks().remove(this);
+        }
+
+        // Устанавливаем новую связь
+        this.assignee = newAssignee;
+
+        // Обновляем обратную сторону
+        if (newAssignee != null) {
+            newAssignee.getTasks().add(this);
+        }
+    }
+
+    public void addLabel(Label label) {
+        Objects.requireNonNull(label, "Label cannot be null");
+        if (!this.labels.contains(label)) {
+            this.labels.add(label);
+            if (!label.getTasks().contains(this)) {
+                label.getTasks().add(this);
+            }
+        }
+    }
+
+    public void removeLabel(Label label) {
+        Objects.requireNonNull(label, "Label cannot be null");
+        if (this.labels.remove(label)) {
+            label.getTasks().remove(this);
+        }
+    }
 }
