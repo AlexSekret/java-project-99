@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -55,7 +57,7 @@ public class TaskService {
     }
 
     public TaskDTO create(TaskCreateDTO dto) {
-        List<Long> labelIds = dto.getTaskLabelIds();
+        Set<Long> labelIds = dto.getTaskLabelIds();
         String slug = dto.getStatus();
         Task task = taskMapper.toTaskModel(dto);
         Long assigneeId = dto.getAssigneeId();
@@ -63,16 +65,13 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with slug " + slug + " not found"));
         User assignee = userRepository.findById(assigneeId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + assigneeId + " not found"));
-        List<Label> labels = labelIds.stream()
+        Set<Label> labels = labelIds.stream()
                 .map(id -> labelRepository.findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found")))
-                .toList();
-        task.setTaskStatus(status);
-        task.setAssignee(assignee);
-        task.setLabels(labels);
-        labels.forEach(label -> {
-            label.getTasks().add(task);
-        });
+                .collect(Collectors.toSet());
+        task.addTaskStatus(status);
+        task.addAssignee(assignee);
+        labels.forEach(task::addLabel);
         taskRepository.save(task);
         TaskDTO result = taskMapper.toTaskDTO(task);
         return result;
