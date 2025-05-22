@@ -93,8 +93,8 @@ class UserControllerTest {
                 .set(Select.field(Task::getTaskStatus), status)
                 .set(Select.field(Task::getAssignee), user)
                 .create();
-        user.addTask(task);
-        status.addTask(task);
+        task.addAssignee(user);
+        task.addTaskStatus(status);
         taskRepository.save(task);
         userRepository.save(user);
         taskStatusRepository.save(status);

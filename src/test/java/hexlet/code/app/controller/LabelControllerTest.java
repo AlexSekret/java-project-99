@@ -93,19 +93,25 @@ class LabelControllerTest {
                 .create();
 
 
-        task.setLabels(List.of(label));
-        user.addTask(task);
-        status.addTask(task);
+        task.addAssignee(user);
+        task.addTaskStatus(status);
+        List.of(label).forEach(task::addLabel);
         taskRepository.save(task);
         token = jwt().jwt(builder -> builder.subject(user.getEmail()));
     }
 
     @AfterEach
     void tearDown() {
+        // Clear task-label relationships first
+        task.getLabels().forEach(task::removeLabel);
+        task.getLabels().clear();
+        taskRepository.saveAndFlush(task); // Ensure changes are flushed
+
+        // Now delete in reverse order
         taskRepository.deleteAll();
         labelRepository.deleteAll();
-        userRepository.deleteAll();
         taskStatusRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -185,6 +191,7 @@ class LabelControllerTest {
 
     @Test
     void deleteTest() throws Exception {
+        labelRepository.deleteAll();
         Label newLabel = Instancio.of(modelGenerator.getLabelModel()).create();
         labelRepository.save(newLabel);
         MockHttpServletRequestBuilder request = delete(API_LABELS + "/" + newLabel.getId()).with(token);
