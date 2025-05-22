@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,5 +23,5 @@ public class TaskCreateDTO {
     private String content;
     @NotBlank(message = "Status cannot be empty")
     private String status;
-    private List<Long> taskLabelIds = new ArrayList<>();
+    private Set<Long> taskLabelIds = new HashSet<>();
 }

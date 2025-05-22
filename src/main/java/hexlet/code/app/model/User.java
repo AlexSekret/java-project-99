@@ -59,7 +59,7 @@ public class User implements BaseEntity, UserDetails {
     @NotNull
     private String passwordDigest;
 
-    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "assignee")
     private List<Task> tasks = new ArrayList<>();
 
     @CreatedDate
