@@ -4,8 +4,8 @@ import hexlet.code.app.dto.TaskStatusCreateDTO;
 import hexlet.code.app.dto.TaskStatusDTO;
 import hexlet.code.app.dto.TaskStatusUpdateDTO;
 import hexlet.code.app.exception.DuplicateEntitySaveException;
+import hexlet.code.app.exception.EntityHasAssociatedTaskException;
 import hexlet.code.app.exception.ResourceNotFoundException;
-import hexlet.code.app.exception.StatusHasAssociatedTasksException;
 import hexlet.code.app.mapper.TaskStatusMapper;
 import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.repository.TaskStatusRepository;
@@ -44,7 +44,7 @@ public class TaskStatusService {
         if (taskStatus.getTasks().isEmpty()) {
             tsRepository.deleteById(id);
         } else {
-            throw new StatusHasAssociatedTasksException("Task Status with id " + id + " has task and can't be deleted");
+            throw new EntityHasAssociatedTaskException("Task Status with id " + id + " has task and can't be deleted");
         }
     }
 
@@ -54,8 +54,7 @@ public class TaskStatusService {
         if (slug.isEmpty()) {
             TaskStatus model = tsMapper.mapToModel(dto);
             tsRepository.save(model);
-            TaskStatusDTO result = tsMapper.mapToDto(model);
-            return result;
+            return tsMapper.mapToDto(model);
         } else {
             throw new DuplicateEntitySaveException("Task status with slug " + dto.getSlug() + " already exists");
         }

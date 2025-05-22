@@ -73,8 +73,7 @@ public class TaskService {
         task.addAssignee(assignee);
         labels.forEach(task::addLabel);
         taskRepository.save(task);
-        TaskDTO result = taskMapper.toTaskDTO(task);
-        return result;
+        return taskMapper.toTaskDTO(task);
     }
 
     public void deleteById(Long id) {
