@@ -1,9 +1,8 @@
 package hexlet.code.app.handler;
 
 import hexlet.code.app.exception.DuplicateEntitySaveException;
+import hexlet.code.app.exception.EntityHasAssociatedTaskException;
 import hexlet.code.app.exception.ResourceNotFoundException;
-import hexlet.code.app.exception.StatusHasAssociatedTasksException;
-import hexlet.code.app.exception.UserHasAssociatedTasksException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -22,13 +21,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
-    @ExceptionHandler(UserHasAssociatedTasksException.class)
-    public ResponseEntity<String> handleUserHasAssociatedTasksException(UserHasAssociatedTasksException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(StatusHasAssociatedTasksException.class)
-    public ResponseEntity<String> handleStatusHasAssociatedTasksException(StatusHasAssociatedTasksException ex) {
+    @ExceptionHandler(EntityHasAssociatedTaskException.class)
+    public ResponseEntity<String> handleEntityHasAssociatedTaskException(EntityHasAssociatedTaskException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }
