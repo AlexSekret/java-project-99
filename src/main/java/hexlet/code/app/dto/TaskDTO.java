@@ -9,6 +9,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -34,5 +35,5 @@ public class TaskDTO {
     // taskStatus.slug in the Task entity
     private String status;
 
-    private List<Long> taskLabelIds;
+    private Set<Long> taskLabelIds;
 }
