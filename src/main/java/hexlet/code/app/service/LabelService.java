@@ -2,6 +2,7 @@ package hexlet.code.app.service;
 
 import hexlet.code.app.dto.LabelCreateDTO;
 import hexlet.code.app.dto.LabelDTO;
+import hexlet.code.app.dto.LabelUpdateDTO;
 import hexlet.code.app.exception.DuplicateEntitySaveException;
 import hexlet.code.app.exception.EntityHasAssociatedTaskException;
 import hexlet.code.app.exception.ResourceNotFoundException;
@@ -53,5 +54,13 @@ public class LabelService {
             throw new EntityHasAssociatedTaskException("Label with id: {" + id + "} has a associated task" +
                     " and can not be deleted");
         }
+    }
+
+    public LabelDTO update(Long id, LabelUpdateDTO dto) {
+        Label model = labelRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found"));
+        labelMapper.update(dto, model);
+        labelRepository.save(model);
+        return labelMapper.toDto(model);
     }
 }

@@ -2,6 +2,7 @@ package hexlet.code.app.controller;
 
 import hexlet.code.app.dto.LabelCreateDTO;
 import hexlet.code.app.dto.LabelDTO;
+import hexlet.code.app.dto.LabelUpdateDTO;
 import hexlet.code.app.service.LabelService;
 import hexlet.code.app.service.PaginationService;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -55,5 +57,11 @@ public class LabelController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         labelService.delete(id);
+    }
+
+    @PutMapping(path = "/labels/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public LabelDTO update(@PathVariable Long id, @RequestBody @Valid LabelUpdateDTO dto) {
+        return labelService.update(id, dto);
     }
 }
