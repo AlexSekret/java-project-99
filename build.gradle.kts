@@ -2,7 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    id("org.springframework.boot") version "3.4.5"
+    id("org.springframework.boot") version "3.5.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("application")
     id("se.patrikerdes.use-latest-versions") version "0.2.18"
@@ -12,7 +12,7 @@ plugins {
     //use JaCoCo plugin
     jacoco
     id("io.freefair.lombok") version "8.13.1"
-    id("org.sonarqube") version "6.1.0.5360"
+    id("org.sonarqube") version "6.2.0.5505"
 }
 
 group = "hexlet.code"
@@ -28,12 +28,13 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.4.5")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.5.0")
     implementation("org.springframework.boot:spring-boot-devtools")
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation:3.4.5")
+    implementation("org.springframework.boot:spring-boot-starter-validation:3.5.0")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("jakarta.validation:jakarta.validation-api:3.1.1")
@@ -44,10 +45,10 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation(platform("org.junit:junit-bom:5.13.0-M2"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-M2")
+    testImplementation(platform("org.junit:junit-bom:5.13.0-RC1"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-RC1")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
     runtimeOnly("com.h2database:h2")
 }
 

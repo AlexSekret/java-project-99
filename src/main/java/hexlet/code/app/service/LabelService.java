@@ -51,8 +51,8 @@ public class LabelService {
         if (label.getTasks().isEmpty()) {
             labelRepository.deleteById(id);
         } else {
-            throw new EntityHasAssociatedTaskException("Label with id: {" + id + "} has a associated task" +
-                    " and can not be deleted");
+            throw new EntityHasAssociatedTaskException("Label with id: {" + id + "} has a associated task"
+                    + " and can not be deleted");
         }
     }
 

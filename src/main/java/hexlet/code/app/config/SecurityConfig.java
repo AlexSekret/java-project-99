@@ -46,7 +46,10 @@ public class SecurityConfig {
                                 "/favicon.ico",
                                 "/index.html",
                                 "/welcome",
-                                "/api/task_statuses").permitAll()
+                                "/api/task_statuses",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
