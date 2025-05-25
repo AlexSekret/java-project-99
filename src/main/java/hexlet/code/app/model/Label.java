@@ -1,14 +1,11 @@
 package hexlet.code.app.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import static jakarta.persistence.GenerationType.IDENTITY;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
@@ -42,10 +39,7 @@ public class Label implements BaseEntity {
     @Size(min = 3, max = 1000)
     private String name;
 
-    @ManyToMany(cascade = CascadeType.MERGE)
-    @JoinTable(name = "task_labels",
-            joinColumns = @JoinColumn(name = "task_id"),
-            inverseJoinColumns = @JoinColumn(name = "label_id"))
+    @ManyToMany(mappedBy = "labels")
     private List<Task> tasks = new ArrayList<>();
 
     @CreatedDate
