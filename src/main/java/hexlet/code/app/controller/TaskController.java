@@ -2,6 +2,7 @@ package hexlet.code.app.controller;
 
 import hexlet.code.app.dto.TaskCreateDTO;
 import hexlet.code.app.dto.TaskDTO;
+import hexlet.code.app.dto.TaskParamsDTO;
 import hexlet.code.app.dto.TaskUpdateDTO;
 import hexlet.code.app.service.PaginationService;
 import hexlet.code.app.service.TaskService;
@@ -39,11 +40,17 @@ public class TaskController {
     @GetMapping(path = "/tasks")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<TaskDTO>> index(
+            TaskParamsDTO params,
             @RequestParam(name = "_end", defaultValue = "10") int end,
             @RequestParam(name = "_start", defaultValue = "0") int start,
             @RequestParam(name = "_sort", defaultValue = "index") String sort,
             @RequestParam(name = "_order", defaultValue = "ASC") String order) {
-        return paginationService.getPaginatedResponse(end, start, sort, order, taskService::getPage);
+        return paginationService.getPaginatedResponse(
+                end,
+                start,
+                sort,
+                order,
+                pageable -> taskService.getPage(params, pageable));
     }
 
     @PostMapping(path = "/tasks")

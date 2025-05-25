@@ -1,13 +1,12 @@
 package hexlet.code.app.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -20,6 +19,7 @@ public class TaskDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate createdAt;
 
+    @JsonProperty(value = "assignee_id")
     private Long assigneeId;
 
     @Size(min = 1)
@@ -28,6 +28,4 @@ public class TaskDTO {
     private String content;
 
     private String status;
-
-    private Set<Long> taskLabelIds = new HashSet<>();
 }

@@ -2,6 +2,7 @@ package hexlet.code.app.service;
 
 import hexlet.code.app.dto.TaskCreateDTO;
 import hexlet.code.app.dto.TaskDTO;
+import hexlet.code.app.dto.TaskParamsDTO;
 import hexlet.code.app.dto.TaskUpdateDTO;
 import hexlet.code.app.exception.ResourceNotFoundException;
 import hexlet.code.app.mapper.TaskMapper;
@@ -13,9 +14,11 @@ import hexlet.code.app.repository.LabelRepository;
 import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
+import hexlet.code.app.specification.TaskSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,6 +37,8 @@ public class TaskService {
     private UserRepository userRepository;
     @Autowired
     private LabelRepository labelRepository;
+    @Autowired
+    private TaskSpecification specBuilder;
 
     public List<TaskDTO> getAll() {
         List<Task> tasks = taskRepository.findAll();
@@ -42,10 +47,10 @@ public class TaskService {
                 .toList();
     }
 
-    public Page<TaskDTO> getPage(Pageable page) {
-        Page<Task> tasks = taskRepository.findAll(page);
-        Page<TaskDTO> result = tasks.map(taskMapper::toTaskDTO);
-        return result;
+    public Page<TaskDTO> getPage(TaskParamsDTO params, Pageable page) {
+        Specification<Task> spec = specBuilder.build(params);
+        Page<Task> tasks = taskRepository.findAll(spec, page);
+        return tasks.map(taskMapper::toTaskDTO);
     }
 
     public TaskDTO getById(Long id) {

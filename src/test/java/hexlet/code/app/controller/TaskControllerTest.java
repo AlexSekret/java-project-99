@@ -4,16 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.app.dto.TaskCreateDTO;
 import hexlet.code.app.dto.TaskDTO;
 import hexlet.code.app.dto.TaskUpdateDTO;
+import hexlet.code.app.model.Label;
 import hexlet.code.app.model.Task;
 import hexlet.code.app.model.TaskStatus;
 import hexlet.code.app.model.User;
+import hexlet.code.app.repository.LabelRepository;
 import hexlet.code.app.repository.TaskRepository;
 import hexlet.code.app.repository.TaskStatusRepository;
 import hexlet.code.app.repository.UserRepository;
 import hexlet.code.app.util.ModelGenerator;
 import static org.hamcrest.Matchers.hasItem;
 import org.instancio.Instancio;
-import org.instancio.Select;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
@@ -67,13 +69,15 @@ class TaskControllerTest {
 
     @Autowired
     private TaskRepository taskRepository;
-
     @Autowired
     private TaskStatusRepository taskStatusRepository;
-
+    @Autowired
+    private LabelRepository labelRepository;
     private User user;
     private Task task;
+    private Task filteredTask;
     private TaskStatus status;
+    private Label label;
     private SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor token;
 
 
@@ -87,14 +91,18 @@ class TaskControllerTest {
         user = Instancio.of(modelGenerator.getUserModel()).create();
 
         status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
-
-        task = Instancio.of(modelGenerator.getTaskModel())
-                .set(Select.field(Task::getTaskStatus), status)
-                .set(Select.field(Task::getAssignee), user)
-                .create();
+        label = Instancio.of(modelGenerator.getLabelModel()).create();
+        task = Instancio.of(modelGenerator.getTaskModel()).create();
         task.addAssignee(user);
         task.addTaskStatus(status);
+        List.of(label).forEach(task::addLabel);
         taskRepository.save(task);
+
+        filteredTask = Instancio.of(modelGenerator.getTaskModel()).create();
+        filteredTask.addAssignee(user);
+        filteredTask.addTaskStatus(status);
+        taskRepository.save(filteredTask);
+
         userRepository.save(user);
         taskStatusRepository.save(status);
 
@@ -103,7 +111,15 @@ class TaskControllerTest {
 
     @AfterEach
     void tearDown() {
+        // First clear all task-label relationships
+        taskRepository.findAll().forEach(t -> {
+            t.getLabels().forEach(t::removeLabel);
+            t.getLabels().clear();
+            taskRepository.save(t);  // Save the changes
+        });
         taskRepository.deleteAll(); // Сначала удаляем Task
+        labelRepository.deleteAll();
+        taskStatusRepository.deleteAll();
         userRepository.deleteAll();
         taskStatusRepository.deleteAll();
     }
@@ -117,7 +133,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.id").value(task.getId()))
                 .andExpect(jsonPath("$.index").value(task.getIndex()))
                 .andExpect(jsonPath("$.createdAt").value(task.getCreatedAt().toString()))
-                .andExpect(jsonPath("$.assigneeId").value(task.getAssignee().getId()))
+                .andExpect(jsonPath("$.assignee_id").value(task.getAssignee().getId()))
                 .andExpect(jsonPath("$.title").value(task.getName()))
                 .andExpect(jsonPath("$.content").value(task.getDescription()))
                 .andExpect(jsonPath("$.status").value(task.getTaskStatus().getSlug()));
@@ -151,7 +167,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.[*].id").value(hasItem(task.getId().intValue())))
                 .andExpect(jsonPath("$.[*].index").value(hasItem(task.getIndex())))
-                .andExpect(jsonPath("$.[*].assigneeId").value(hasItem(task.getAssignee().getId().intValue())))
+                .andExpect(jsonPath("$.[*].assignee_id").value(hasItem(task.getAssignee().getId().intValue())))
                 .andExpect(jsonPath("$.[*].title").value(hasItem(task.getName())))
                 .andExpect(jsonPath("$.[*].content").value(hasItem(task.getDescription())))
                 .andExpect(jsonPath("$.[*].status").value(hasItem(task.getTaskStatus().getSlug())));
@@ -176,11 +192,11 @@ class TaskControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.index").value(newTask.getIndex()))
-                .andExpect(jsonPath("$.assigneeId").value(newTask.getAssigneeId()))
+                .andExpect(jsonPath("$.assignee_id").value(newTask.getAssigneeId()))
                 .andExpect(jsonPath("$.title").value(newTask.getTitle()))
                 .andExpect(jsonPath("$.content").value(newTask.getContent()))
                 .andExpect(jsonPath("$.status").value(newTask.getStatus()))
-                .andExpect(jsonPath("$.taskLabelIds").value(1))
+//                .andExpect(jsonPath("$.taskLabelIds").value(1))
                 .andReturn().getResponse().getContentAsString();
         TaskDTO taskDTO = om.readValue(response, TaskDTO.class);
         assertTrue(taskRepository.existsById(taskDTO.getId()));
@@ -237,7 +253,7 @@ class TaskControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(task.getId()))
                 .andExpect(jsonPath("$.index").value(updateDTO.getIndex().get()))
-                .andExpect(jsonPath("$.assigneeId").value(updateDTO.getAssigneeId().get()))
+                .andExpect(jsonPath("$.assignee_id").value(updateDTO.getAssigneeId().get()))
                 .andExpect(jsonPath("$.title").value(updateDTO.getTitle().get()))
                 .andExpect(jsonPath("$.content").value(updateDTO.getContent().get()))
                 .andExpect(jsonPath("$.status").value(updateDTO.getStatus().get()))
@@ -253,5 +269,26 @@ class TaskControllerTest {
         assertEquals(taskDTO.getTitle(), taskFromDB.getName());
         assertEquals(taskDTO.getContent(), taskFromDB.getDescription());
         assertEquals(taskDTO.getCreatedAt(), taskFromDB.getCreatedAt());
+    }
+
+    @Test
+    void filteredIndexTest() throws Exception {
+        // /api/tasks?titleCont=create&assigneeId=1&status=to_be_fixed&labelId=1
+
+        MockHttpServletRequestBuilder request = get("/api/tasks").with(token)
+                .param("titleCont", task.getName())
+                .param("assigneeId", user.getId().toString())
+                .param("status", status.getSlug())
+                .param("labelId", label.getId().toString());
+        this.mockMvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].id").value(task.getId()))
+                .andExpect(jsonPath("$[0].index").value(task.getIndex()))
+                .andExpect(jsonPath("$[0].assignee_id").value(task.getAssignee().getId()))
+                .andExpect(jsonPath("$[0].title").value(task.getName()))
+                .andExpect(jsonPath("$[0].content").value(task.getDescription()))
+                .andExpect(jsonPath("$[0].status").value(task.getTaskStatus().getSlug()));
     }
 }

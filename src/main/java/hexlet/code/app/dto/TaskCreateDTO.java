@@ -1,5 +1,6 @@
 package hexlet.code.app.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -12,6 +13,8 @@ import java.util.Set;
 @Setter
 public class TaskCreateDTO {
     private Integer index;
+
+    @JsonProperty(value = "assignee_id")
     private Long assigneeId;
 
     @NotBlank(message = "Title cannot be empty")

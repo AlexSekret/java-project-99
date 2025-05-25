@@ -49,7 +49,7 @@ public abstract class TaskMapper {
     @Mapping(source = "taskStatus.slug", target = "status")
     @Mapping(source = "assignee.id", target = "assigneeId")
 //    @Mapping(source = "labels", target = "taskLabelIds")
-    @Mapping(source = "labels", target = "taskLabelIds", qualifiedByName = "labelsToIds")
+//    @Mapping(source = "labels", target = "taskLabelIds", qualifiedByName = "labelsToIds")
     public abstract TaskDTO toTaskDTO(Task model);
 
     //update model
