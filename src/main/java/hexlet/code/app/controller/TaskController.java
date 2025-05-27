@@ -1,9 +1,9 @@
 package hexlet.code.app.controller;
 
-import hexlet.code.app.dto.TaskCreateDTO;
-import hexlet.code.app.dto.TaskDTO;
-import hexlet.code.app.dto.TaskParamsDTO;
-import hexlet.code.app.dto.TaskUpdateDTO;
+import hexlet.code.app.dto.task.TaskCreateDTO;
+import hexlet.code.app.dto.task.TaskDTO;
+import hexlet.code.app.dto.task.TaskParamsDTO;
+import hexlet.code.app.dto.task.TaskUpdateDTO;
 import hexlet.code.app.service.PaginationService;
 import hexlet.code.app.service.TaskService;
 import jakarta.validation.Valid;

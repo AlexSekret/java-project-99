@@ -1,8 +1,8 @@
 package hexlet.code.app.service;
 
-import hexlet.code.app.dto.LabelCreateDTO;
-import hexlet.code.app.dto.LabelDTO;
-import hexlet.code.app.dto.LabelUpdateDTO;
+import hexlet.code.app.dto.label.LabelCreateDTO;
+import hexlet.code.app.dto.label.LabelDTO;
+import hexlet.code.app.dto.label.LabelUpdateDTO;
 import hexlet.code.app.exception.DuplicateEntitySaveException;
 import hexlet.code.app.exception.EntityHasAssociatedTaskException;
 import hexlet.code.app.exception.ResourceNotFoundException;

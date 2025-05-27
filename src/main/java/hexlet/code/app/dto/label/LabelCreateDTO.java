@@ -1,4 +1,4 @@
-package hexlet.code.app.dto;
+package hexlet.code.app.dto.label;
 
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
