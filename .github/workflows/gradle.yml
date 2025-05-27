@@ -58,6 +58,9 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Build with Gradle Wrapper
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: ./gradlew build
 
       - name: Checking style with Gradle
