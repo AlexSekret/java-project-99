@@ -12,4 +12,9 @@ public class WelcomeController {
     public String welcome() {
         return "Welcome to Spring!";
     }
+
+    @GetMapping(path = "/error-test")
+    public String testSentryManual() throws Exception {
+        throw new Exception("Ручная отправка в Sentry");
+    }
 }

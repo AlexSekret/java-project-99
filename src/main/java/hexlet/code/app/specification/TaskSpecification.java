@@ -11,8 +11,8 @@ public class TaskSpecification {
     public Specification<Task> build(TaskParamsDTO params) {
         String title = params.getTitleCont();
         String status = params.getStatus();
-        Long labelId = params.getLabelId();
-        Long assigneeId = params.getAssigneeId();
+        Integer labelId = params.getLabelId();
+        Integer assigneeId = params.getAssigneeId();
 
         return withTaskTitle(title)
                 .and(withAssigneeId(assigneeId))
@@ -20,7 +20,7 @@ public class TaskSpecification {
                 .and(withLabelId(labelId));
     }
 
-    private Specification<Task> withLabelId(Long id) {
+    private Specification<Task> withLabelId(Integer id) {
         return (root, query, cb) -> id == null ? cb.conjunction()
                 : cb.equal(root.join("labels").get("id"), id);
     }
@@ -30,7 +30,7 @@ public class TaskSpecification {
                 : cb.equal(root.get("taskStatus").get("slug"), status);
     }
 
-    private Specification<Task> withAssigneeId(Long id) {
+    private Specification<Task> withAssigneeId(Integer id) {
         return (root, query, cb) -> id == null ? cb.conjunction()
                 : cb.equal(root.get("assignee").get("id"), id);
     }

@@ -90,7 +90,6 @@ public class TaskService {
                 orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
         taskMapper.update(dto, task);
         taskRepository.save(task);
-        TaskDTO result = taskMapper.toTaskDTO(task);
-        return result;
+        return taskMapper.toTaskDTO(task);
     }
 }
