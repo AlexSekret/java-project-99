@@ -1,7 +1,6 @@
----
-sentry:
-  enabled: false
-  dsn: null
 spring:
   autoconfigure:
     exclude: io.sentry.spring.boot.jakarta.SentryAutoConfiguration
+sentry:
+  enabled: false
+  dsn: null
