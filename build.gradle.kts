@@ -7,19 +7,16 @@ plugins {
     id("application")
     id("se.patrikerdes.use-latest-versions") version "0.2.18"
     id("com.github.ben-manes.versions") version "0.52.0"
-    //use the Checkstyle plugin
     checkstyle
-    //use JaCoCo plugin
     jacoco
     id("io.freefair.lombok") version "8.13.1"
     id("org.sonarqube") version "6.2.0.5505"
-    id("io.sentry.jvm.gradle") version "5.6.0"
+    id("io.sentry.jvm.gradle") version "5.7.0"
 }
 
 group = "hexlet.code"
 version = "0.0.1-SNAPSHOT"
 
-//setup entry point in our App
 application {
     mainClass.set("hexlet.code.app.AppApplication")
 }
@@ -27,7 +24,6 @@ application {
 repositories {
     mavenCentral()
 }
-
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
@@ -42,10 +38,7 @@ dependencies {
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("jakarta.validation:jakarta.validation-api:3.1.1")
     implementation("net.datafaker:datafaker:2.4.3")
-    implementation("io.sentry:sentry-spring-boot-starter-jakarta:8.13.0")
-    implementation("io.sentry:sentry-opentelemetry-agent:8.13.0")
     implementation("org.instancio:instancio-junit:5.4.1")
-    implementation("org.mapstruct:mapstruct:1.6.3")
     implementation("org.mapstruct:mapstruct:1.6.3")
     annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -76,15 +69,4 @@ sonar {
         property("sonar.organization", "alexsekret")
         property("sonar.host.url", "https://sonarcloud.io")
     }
-}
-
-sentry {
-    // Generates a JVM (Java, Kotlin, etc.) source bundle and uploads your source code to Sentry.
-    // This enables source context, allowing you to see your source
-    // code as part of your stack traces in Sentry.
-    includeSourceContext = true
-
-    org = "organization-ge"
-    projectName = "java-spring-boot"
-    authToken = System.getenv("SENTRY_AUTH_TOKEN")
 }
