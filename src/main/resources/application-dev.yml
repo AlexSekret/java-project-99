@@ -1,5 +1,4 @@
 spring:
-  profiles: dev
   datasource:
     url: jdbc:h2:mem:devdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;
     driverClassName: org.h2.Driver
@@ -18,3 +17,7 @@ spring:
 
 sentry:
   environment: dev
+
+rsa:
+  private-key: classpath:certs/private.pem
+  public-key: classpath:certs/public.pem

@@ -1,8 +1,9 @@
----
 spring:
-  profiles: prod
   datasource:
     url: ${JDBC_DATABASE_URL}
 
 sentry:
   environment: prod
+rsa:
+  private-key: ${RSA_PRIVATE_KEY}
+  public-key: ${RSA_PUBLIC_KEY}

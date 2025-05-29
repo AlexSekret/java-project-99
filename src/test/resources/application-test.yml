@@ -1,7 +1,0 @@
-spring:
-  profiles: test
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-sentry:
-  enabled: false

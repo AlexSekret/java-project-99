@@ -3,10 +3,13 @@ package hexlet.code.app;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@TestPropertySource(properties = {
+        "sentry.enabled=false",
+        "sentry.dsn="
+})
 class AppApplicationTests {
 
     @Test
