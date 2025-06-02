@@ -1,14 +1,11 @@
 
-.DEFAULT_GOAL := build-run
+.DEFAULT_GOAL := run-dist
 
 clean:
 	./gradlew clean
 
 build:
-	./gradlew build
-
-install:
-	./gradlew clean install
+	./gradlew bootJar
 
 run:
 	./gradlew bootRun
@@ -23,9 +20,7 @@ lint-tests:
 	./gradlew checkstyleTest
 
 install-dist:
-	./gradlew installDist
-
-build-run: build run
+	./gradlew clean installBootDist
 
 sonar:
 	./gradlew sonar
@@ -33,7 +28,8 @@ sonar:
 report:
 	./gradlew jacocoTestReport
 
-do-all: clean build run
+run-dist:
+	./build/install/app-boot/bin/app
 
 preCommit: clean lint lint-tests
 .PHONY: build

@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -94,39 +95,38 @@ class TaskControllerTest {
                 .build();
 
         user = Instancio.of(modelGenerator.getUserModel()).create();
-
+        userRepository.save(user);
         status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
+        taskStatusRepository.save(status);
+
         label = Instancio.of(modelGenerator.getLabelModel()).create();
+        labelRepository.save(label);
+
         task = Instancio.of(modelGenerator.getTaskModel()).create();
-        task.addAssignee(user);
-        task.addTaskStatus(status);
-        List.of(label).forEach(task::addLabel);
+        task.setAssignee(user);
+        task.setTaskStatus(status);
+        task.setLabels(Set.of(label));
         taskRepository.save(task);
 
         filteredTask = Instancio.of(modelGenerator.getTaskModel()).create();
-        filteredTask.addAssignee(user);
-        filteredTask.addTaskStatus(status);
+        filteredTask.setAssignee(user);
+        filteredTask.setTaskStatus(status);
         taskRepository.save(filteredTask);
-
-        userRepository.save(user);
-        taskStatusRepository.save(status);
 
         token = jwt().jwt(builder -> builder.subject(user.getEmail()));
     }
 
     @AfterEach
     void tearDown() {
-        // First clear all task-label relationships
-        taskRepository.findAll().forEach(t -> {
-            t.getLabels().forEach(t::removeLabel);
-            t.getLabels().clear();
-            taskRepository.save(t);  // Save the changes
+        List<Task> tasks = taskRepository.findAll();
+        tasks.forEach(task -> {
+            task.setLabels(new HashSet<>());
+            taskRepository.save(task);
         });
-        taskRepository.deleteAll(); // Сначала удаляем Task
+        taskRepository.deleteAll();
         labelRepository.deleteAll();
         taskStatusRepository.deleteAll();
         userRepository.deleteAll();
-        taskStatusRepository.deleteAll();
     }
 
     @Test
@@ -187,7 +187,7 @@ class TaskControllerTest {
         newTask.setTitle("New very important Task");
         newTask.setContent("New very important Task content");
         newTask.setStatus("draft");
-        newTask.setTaskLabelIds(Set.of(1L));
+        newTask.setTaskLabelIds(Set.of(label.getId()));
         MockHttpServletRequestBuilder createRequest = post(API_TASKS).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(om.writeValueAsString(newTask));

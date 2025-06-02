@@ -42,7 +42,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -98,19 +100,20 @@ class LabelControllerTest {
                 .create();
 
 
-        task.addAssignee(user);
-        task.addTaskStatus(status);
-        List.of(label).forEach(task::addLabel);
+        task.setAssignee(user);
+        task.setTaskStatus(status);
+        task.setLabels(Set.of(label));
         taskRepository.save(task);
         token = jwt().jwt(builder -> builder.subject(user.getEmail()));
     }
 
     @AfterEach
     void tearDown() {
-        // Clear task-label relationships first
-        task.getLabels().forEach(task::removeLabel);
-        task.getLabels().clear();
-        taskRepository.saveAndFlush(task); // Ensure changes are flushed
+        List<Task> tasks = taskRepository.findAll();
+        tasks.forEach(task -> {
+            task.setLabels(new HashSet<>());
+            taskRepository.save(task);
+        });
 
         // Now delete in reverse order
         taskRepository.deleteAll();

@@ -3,6 +3,7 @@ package hexlet.code.controller;
 import hexlet.code.dto.user.UserCreateDTO;
 import hexlet.code.dto.user.UserDTO;
 import hexlet.code.dto.user.UserUpdateDTO;
+import hexlet.code.repository.UserRepository;
 import hexlet.code.service.PaginationService;
 import hexlet.code.service.UserService;
 import jakarta.validation.Valid;
@@ -32,6 +33,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private PaginationService paginationService;
+    @Autowired
+    private UserRepository useRepository;
 
     @GetMapping(path = "/users")
     @ResponseStatus(HttpStatus.OK)

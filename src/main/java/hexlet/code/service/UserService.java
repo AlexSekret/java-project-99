@@ -3,7 +3,6 @@ package hexlet.code.service;
 import hexlet.code.dto.user.UserCreateDTO;
 import hexlet.code.dto.user.UserDTO;
 import hexlet.code.dto.user.UserUpdateDTO;
-import hexlet.code.exception.EntityHasAssociatedTaskException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
@@ -40,11 +39,7 @@ public class UserService {
     public void deleteById(Long id) {
         User user = userRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        if (user.getTasks().isEmpty()) {
-            userRepository.deleteById(id);
-        } else {
-            throw new EntityHasAssociatedTaskException("User with id " + id + "has task and cannot be deleted");
-        }
+        userRepository.delete(user);
     }
 
     public UserDTO create(UserCreateDTO userDTO) {

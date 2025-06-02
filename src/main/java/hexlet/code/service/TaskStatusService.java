@@ -10,6 +10,7 @@ import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,10 +42,10 @@ public class TaskStatusService {
     public void deleteById(Long id) {
         TaskStatus taskStatus = tsRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Task status with id " + id + " not found"));
-        if (taskStatus.getTasks().isEmpty()) {
-            tsRepository.deleteById(id);
-        } else {
-            throw new EntityHasAssociatedTaskException("Task Status with id " + id + " has task and can't be deleted");
+        try {
+            tsRepository.delete(taskStatus);
+        } catch (DataIntegrityViolationException e) {
+            throw new EntityHasAssociatedTaskException("Task Status with id " + id + " has tasks and can't be deleted");
         }
     }
 

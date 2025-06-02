@@ -10,4 +10,8 @@ import java.util.Optional;
 public interface TaskRepository extends JpaRepository<Task, Long>,
         JpaSpecificationExecutor<Task>, PagingAndSortingRepository<Task, Long> {
     Optional<Task> findByName(String name);
+
+    boolean existsByAssigneeId(Long id);
+
+    Task findByAssigneeId(Long id);
 }

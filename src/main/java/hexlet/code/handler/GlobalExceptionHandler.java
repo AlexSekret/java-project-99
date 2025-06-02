@@ -4,6 +4,7 @@ import hexlet.code.exception.DuplicateEntitySaveException;
 import hexlet.code.exception.EntityHasAssociatedTaskException;
 import hexlet.code.exception.ResourceNotFoundException;
 import io.sentry.Sentry;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,15 +20,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(DuplicateEntitySaveException.class)
     public ResponseEntity<String> handleDuplicateSlugException(DuplicateEntitySaveException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
     @ExceptionHandler(EntityHasAssociatedTaskException.class)
     public ResponseEntity<String> handleEntityHasAssociatedTaskException(EntityHasAssociatedTaskException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
-    // Новый обработчик для ВСЕХ неожиданных ошибок
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolation() {
+        return ResponseEntity.badRequest()
+                .body("Cannot delete entity because it has associated records");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleAllExceptions(Exception ex) {
         Sentry.captureException(ex); // Отправка в Sentry

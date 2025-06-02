@@ -72,9 +72,10 @@ public class TaskService {
                 .map(id -> labelRepository.findById(id)
                         .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found")))
                 .collect(Collectors.toSet());
-        task.addTaskStatus(status);
-        task.addAssignee(assignee);
-        labels.forEach(task::addLabel);
+        task.setAssignee(assignee);
+//        task.addTaskStatus(status);
+//        task.addAssignee(assignee);
+//        labels.forEach(task::addLabel);
         taskRepository.save(task);
         return taskMapper.toTaskDTO(task);
     }

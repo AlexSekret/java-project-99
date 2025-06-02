@@ -18,7 +18,7 @@ group = "hexlet.code"
 version = "0.0.1-SNAPSHOT"
 
 application {
-    mainClass.set("hexlet.code.app.AppApplication")
+    mainClass.set("hexlet.code.AppApplication")
 }
 
 repositories {
@@ -48,6 +48,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-RC1")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
     runtimeOnly("com.h2database:h2")
 }
 

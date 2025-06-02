@@ -12,6 +12,7 @@ import hexlet.code.repository.LabelRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,9 +49,9 @@ public class LabelService {
         //Если метка связана с задачей, удалить её нельзя
         Label label = labelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found"));
-        if (label.getTasks().isEmpty()) {
+        try {
             labelRepository.deleteById(id);
-        } else {
+        } catch (DataIntegrityViolationException e) {
             throw new EntityHasAssociatedTaskException("Label with id: {" + id + "} has a associated task"
                     + " and can not be deleted");
         }

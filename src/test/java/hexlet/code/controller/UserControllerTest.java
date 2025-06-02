@@ -15,7 +15,6 @@ import hexlet.code.util.ModelGenerator;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.instancio.Instancio;
-import org.instancio.Select;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,19 +88,17 @@ class UserControllerTest {
                 .build();
 
         user = Instancio.of(modelGenerator.getUserModel()).create();
+        userRepository.save(user);
         userWithNoTasks = Instancio.of(modelGenerator.getUserModel()).create();
 
         status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
+        taskStatusRepository.save(status);
 
         task = Instancio.of(modelGenerator.getTaskModel())
-                .set(Select.field(Task::getTaskStatus), status)
-                .set(Select.field(Task::getAssignee), user)
                 .create();
-        task.addAssignee(user);
-        task.addTaskStatus(status);
+        task.setAssignee(user);
+        task.setTaskStatus(status);
         taskRepository.save(task);
-        userRepository.save(user);
-        taskStatusRepository.save(status);
         token = jwt().jwt(builder -> builder.subject(user.getEmail()));
         userWithNoTasksToken = jwt().jwt(builder -> builder.subject(userWithNoTasks.getEmail()));
         userRepository.save(userWithNoTasks);
@@ -109,9 +106,11 @@ class UserControllerTest {
 
     @AfterEach
     void tearDown() {
+        task.setAssignee(null);
+        task.setTaskStatus(null);
         taskRepository.deleteAll(); // Сначала удаляем Task
-        userRepository.deleteAll();
         taskStatusRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -280,8 +279,11 @@ class UserControllerTest {
 
     @Test
     void testDeleteWithTasks() throws Exception {
+        Task task = taskRepository.findByAssigneeId(user.getId());
+        assertThat(taskRepository.existsByAssigneeId(user.getId())).isTrue();
         mockMvc.perform(delete(API_USERS + "/" + user.getId()).with(token))
                 .andExpect(status().isBadRequest());
+        assertThat(userRepository.existsById(user.getId())).isTrue();
     }
 
     @Test

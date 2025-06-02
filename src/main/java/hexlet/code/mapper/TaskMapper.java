@@ -19,7 +19,7 @@ import org.mapstruct.ReportingPolicy;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Optional;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,10 +72,9 @@ public abstract class TaskMapper {
 
     @Named("idsToLabels")
     protected Set<Label> idsToLabels(JsonNullable<Set<Long>> dto) {
-        return dto.get().stream()
-                .map(id -> labelRepository.findById(id))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+        if (dto == null || !dto.isPresent() || dto.get().isEmpty()) {
+            return Collections.emptySet();
+        }
+        return labelRepository.findByIdIn(dto.get());
     }
 }

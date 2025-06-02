@@ -1,6 +1,5 @@
 package hexlet.code.model;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -17,12 +16,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -50,60 +50,14 @@ public class Task implements BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "assignee_id")
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     private User assignee;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany
     @JoinTable(name = "task_label",
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
     private Set<Label> labels = new HashSet<>();
     @CreatedDate
     private LocalDate createdAt;
-
-    public void addTaskStatus(TaskStatus newStatus) {
-        // Удаляем связь с текущим статусом
-        if (this.taskStatus != null) {
-            this.taskStatus.getTasks().remove(this);
-        }
-
-        // Устанавливаем новую связь
-        this.taskStatus = newStatus;
-
-        // Обновляем обратную сторону
-        if (newStatus != null) {
-            newStatus.getTasks().add(this);
-        }
-    }
-
-    public void addAssignee(User newAssignee) {
-        // Удаляем связь с текущим пользователем
-        if (this.assignee != null) {
-            this.assignee.getTasks().remove(this);
-        }
-
-        // Устанавливаем новую связь
-        this.assignee = newAssignee;
-
-        // Обновляем обратную сторону
-        if (newAssignee != null) {
-            newAssignee.getTasks().add(this);
-        }
-    }
-
-    public void addLabel(Label label) {
-        Objects.requireNonNull(label, "Label cannot be null");
-        if (!this.labels.contains(label)) {
-            this.labels.add(label);
-            if (!label.getTasks().contains(this)) {
-                label.getTasks().add(this);
-            }
-        }
-    }
-
-    public void removeLabel(Label label) {
-        Objects.requireNonNull(label, "Label cannot be null");
-        if (this.labels.remove(label)) {
-            label.getTasks().remove(this);
-        }
-    }
 }

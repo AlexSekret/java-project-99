@@ -97,8 +97,8 @@ class TaskStatusControllerTest {
                 .set(Select.field(Task::getTaskStatus), status)
                 .set(Select.field(Task::getAssignee), user)
                 .create();
-        task.addAssignee(user);
-        task.addTaskStatus(status);
+        task.setAssignee(user);
+        task.setTaskStatus(status);
         userRepository.save(user);
         taskStatusRepository.save(status);
         taskRepository.save(task);
