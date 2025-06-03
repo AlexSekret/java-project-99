@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -39,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
@@ -47,7 +47,6 @@ import java.util.List;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 @TestPropertySource(properties = {
         "sentry.enabled=false",
         "sentry.dsn="
@@ -279,11 +278,10 @@ class UserControllerTest {
 
     @Test
     void testDeleteWithTasks() throws Exception {
-        Task task = taskRepository.findByAssigneeId(user.getId());
         assertThat(taskRepository.existsByAssigneeId(user.getId())).isTrue();
         mockMvc.perform(delete(API_USERS + "/" + user.getId()).with(token))
                 .andExpect(status().isBadRequest());
-        assertThat(userRepository.existsById(user.getId())).isTrue();
+        assertTrue(userRepository.existsById(user.getId()));
     }
 
     @Test

@@ -40,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
@@ -49,7 +48,6 @@ import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
-@Transactional
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "sentry.enabled=false",
@@ -98,7 +96,6 @@ class TaskControllerTest {
         userRepository.save(user);
         status = Instancio.of(modelGenerator.getTaskStatusModel()).create();
         taskStatusRepository.save(status);
-
         label = Instancio.of(modelGenerator.getLabelModel()).create();
         labelRepository.save(label);
 
@@ -181,16 +178,19 @@ class TaskControllerTest {
 
     @Test
     void createTest() throws Exception {
+        String slug = taskStatusRepository.findBySlug(status.getSlug())
+                .orElseThrow(() -> new AssertionError("TaskStatus not found")).getSlug();
         TaskCreateDTO newTask = new TaskCreateDTO();
         newTask.setIndex(1);
         newTask.setAssigneeId(user.getId());
         newTask.setTitle("New very important Task");
         newTask.setContent("New very important Task content");
-        newTask.setStatus("draft");
-        newTask.setTaskLabelIds(Set.of(label.getId()));
+        newTask.setStatus(slug);
+        newTask.getTaskLabelIds().add(label.getId());
+        String content = om.writeValueAsString(newTask);
         MockHttpServletRequestBuilder createRequest = post(API_TASKS).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(newTask));
+                .content(content);
         String response = this.mockMvc.perform(createRequest)
                 .andDo(print())
                 .andExpect(status().isCreated())
@@ -201,7 +201,6 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.title").value(newTask.getTitle()))
                 .andExpect(jsonPath("$.content").value(newTask.getContent()))
                 .andExpect(jsonPath("$.status").value(newTask.getStatus()))
-//                .andExpect(jsonPath("$.taskLabelIds").value(1))
                 .andReturn().getResponse().getContentAsString();
         TaskDTO taskDTO = om.readValue(response, TaskDTO.class);
         assertTrue(taskRepository.existsById(taskDTO.getId()));
