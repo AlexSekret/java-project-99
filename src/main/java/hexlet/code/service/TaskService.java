@@ -6,10 +6,7 @@ import hexlet.code.dto.task.TaskParamsDTO;
 import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.TaskMapper;
-import hexlet.code.model.Label;
 import hexlet.code.model.Task;
-import hexlet.code.model.TaskStatus;
-import hexlet.code.model.User;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
@@ -22,8 +19,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -60,22 +55,7 @@ public class TaskService {
     }
 
     public TaskDTO create(TaskCreateDTO dto) {
-        Set<Long> labelIds = dto.getTaskLabelIds();
-        String slug = dto.getStatus();
         Task task = taskMapper.toTaskModel(dto);
-        Long assigneeId = dto.getAssigneeId();
-        TaskStatus status = taskStatusRepository.findBySlug(slug)
-                .orElseThrow(() -> new ResourceNotFoundException("TaskStatus with slug " + slug + " not found"));
-        User assignee = userRepository.findById(assigneeId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + assigneeId + " not found"));
-        Set<Label> labels = labelIds.stream()
-                .map(id -> labelRepository.findById(id)
-                        .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found")))
-                .collect(Collectors.toSet());
-        task.setAssignee(assignee);
-//        task.addTaskStatus(status);
-//        task.addAssignee(assignee);
-//        labels.forEach(task::addLabel);
         taskRepository.save(task);
         return taskMapper.toTaskDTO(task);
     }
