@@ -14,10 +14,12 @@ spring:
       path: /h2-console
       settings.trace: false
       settings.web-allow-others: false
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
 sentry:
   environment: dev
 

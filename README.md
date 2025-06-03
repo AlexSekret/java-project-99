@@ -11,7 +11,7 @@
 - Registration and authentication are required to work with the system.
 
 
-### Install & Run
+### Install & Run locally
 
 ```bash
 make install-dist
