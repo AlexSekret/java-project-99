@@ -35,7 +35,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
-    implementation("org.postgresql:postgresql:42.7.5")
+    implementation("org.postgresql:postgresql:42.7.6")
     implementation("jakarta.validation:jakarta.validation-api:3.1.1")
     implementation("net.datafaker:datafaker:2.4.3")
     implementation("org.instancio:instancio-junit:5.4.1")
@@ -44,10 +44,12 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
-    testImplementation(platform("org.junit:junit-bom:5.13.0-RC1"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-RC1")
+    testImplementation(platform("org.junit:junit-bom:5.13.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("net.javacrumbs.json-unit:json-unit-assertj:4.1.1")
+    // https://mvnrepository.com/artifact/org.mockito/mockito-core
+    testImplementation("org.mockito:mockito-core:5.18.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
     runtimeOnly("com.h2database:h2")
 }
