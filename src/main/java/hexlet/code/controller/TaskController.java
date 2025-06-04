@@ -41,7 +41,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<TaskDTO>> index(
             TaskParamsDTO params,
-            @RequestParam(name = "_end", defaultValue = "10") int end,
+            @RequestParam(name = "_end", defaultValue = "20") int end,
             @RequestParam(name = "_start", defaultValue = "0") int start,
             @RequestParam(name = "_sort", defaultValue = "index") String sort,
             @RequestParam(name = "_order", defaultValue = "ASC") String order) {

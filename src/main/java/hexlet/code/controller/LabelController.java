@@ -40,7 +40,7 @@ public class LabelController {
     @GetMapping(path = "/labels")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<LabelDTO>> index(
-            @RequestParam(name = "_end", defaultValue = "10") int end,
+            @RequestParam(name = "_end", defaultValue = "20") int end,
             @RequestParam(name = "_start", defaultValue = "0") int start,
             @RequestParam(name = "_sort", defaultValue = "id") String sort,
             @RequestParam(name = "_order", defaultValue = "ASC") String order) {
