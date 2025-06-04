@@ -39,7 +39,7 @@ public class UserController {
     @GetMapping(path = "/users")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<UserDTO>> index(
-            @RequestParam(name = "_end", defaultValue = "5") int end,
+            @RequestParam(name = "_end", defaultValue = "10") int end,
             @RequestParam(name = "_start", defaultValue = "0") int start,
             @RequestParam(name = "_sort", defaultValue = "id") String sort,
             @RequestParam(name = "_order", defaultValue = "ASC") String order) {

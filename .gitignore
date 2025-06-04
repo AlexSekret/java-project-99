@@ -39,3 +39,11 @@ out/
 ### GIGE IDE ###
 /.gigaide/
 /node_modules/
+/src/test/resources/
+/src/test/java/hexlet/code/UserTest.java
+/src/test/java/hexlet/code/model/
+/src/test/java/project/
+/src/test/java/hexlet/code/LabelTest.java
+/src/test/java/hexlet/code/TaskStatusTest.java
+/src/test/java/hexlet/code/TaskTest.java
+/src/test/java/hexlet/code/testUtil/
