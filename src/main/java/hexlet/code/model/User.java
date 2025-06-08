@@ -56,9 +56,6 @@ public class User implements BaseEntity, UserDetails {
     @NotNull
     private String passwordDigest;
 
-//    @OneToMany(mappedBy = "assignee")
-//    private List<Task> tasks = new ArrayList<>();
-
     @CreatedDate
     private LocalDate createdAt;
 

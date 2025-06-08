@@ -4,30 +4,25 @@ import hexlet.code.dto.label.LabelCreateDTO;
 import hexlet.code.dto.label.LabelDTO;
 import hexlet.code.dto.label.LabelUpdateDTO;
 import hexlet.code.exception.DuplicateEntitySaveException;
-import hexlet.code.exception.EntityHasAssociatedTaskException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.LabelMapper;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class LabelService {
-    @Autowired
-    private LabelRepository labelRepository;
-    @Autowired
-    private LabelMapper labelMapper;
+    private final LabelRepository labelRepository;
+    private final LabelMapper labelMapper;
 
     public LabelDTO getById(Long id) {
         Label label = labelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(id, "Label"));
         return labelMapper.toDto(label);
     }
 
@@ -46,20 +41,14 @@ public class LabelService {
     }
 
     public void delete(Long id) {
-        //Если метка связана с задачей, удалить её нельзя
         Label label = labelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found"));
-        try {
-            labelRepository.deleteById(id);
-        } catch (DataIntegrityViolationException e) {
-            throw new EntityHasAssociatedTaskException("Label with id: {" + id + "} has a associated task"
-                    + " and can not be deleted");
-        }
+                .orElseThrow(() -> new ResourceNotFoundException(id, "Label"));
+        labelRepository.delete(label);
     }
 
     public LabelDTO update(Long id, LabelUpdateDTO dto) {
         Label model = labelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Label with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(id, "Label"));
         labelMapper.update(dto, model);
         labelRepository.save(model);
         return labelMapper.toDto(model);

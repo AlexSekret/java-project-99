@@ -46,6 +46,7 @@ public class Task implements BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "task_status_id")
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     private TaskStatus taskStatus;
 
     @ManyToOne
@@ -57,6 +58,7 @@ public class Task implements BaseEntity {
     @JoinTable(name = "task_label",
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "label_id"))
+    @OnDelete(action = OnDeleteAction.RESTRICT)
     private Set<Label> labels = new HashSet<>();
     @CreatedDate
     private LocalDate createdAt;

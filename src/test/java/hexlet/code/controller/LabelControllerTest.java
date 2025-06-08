@@ -108,9 +108,9 @@ class LabelControllerTest {
     @AfterEach
     void tearDown() {
         List<Task> tasks = taskRepository.findAll();
-        tasks.forEach(task -> {
-            task.setLabels(new HashSet<>());
-            taskRepository.save(task);
+        tasks.forEach(t -> {
+            t.setLabels(new HashSet<>());
+            taskRepository.save(t);
         });
 
         // Now delete in reverse order
@@ -169,6 +169,17 @@ class LabelControllerTest {
     }
 
     @Test
+    public void createDuplicateShouldFail() throws Exception {
+        LabelCreateDTO newLabel = new LabelCreateDTO();
+        newLabel.setName(label.getName());
+        MockHttpServletRequestBuilder request = post(API_LABELS).with(token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(om.writeValueAsString(newLabel));
+        this.mockMvc.perform(request)
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void updateTest() throws Exception {
         LabelUpdateDTO update = new LabelUpdateDTO();
         update.setName("new_label");
@@ -185,7 +196,6 @@ class LabelControllerTest {
 
     @Test
     void updateNonExistingLabelTest() throws Exception {
-        String oldName = label.getName();
         LabelUpdateDTO update = new LabelUpdateDTO();
         update.setName("newLabel");
         MockHttpServletRequestBuilder request = put(API_LABELS + "/" + NON_EXIST_LABEL).with(token)
@@ -222,15 +232,15 @@ class LabelControllerTest {
 
     @Test
     void unauthorizedActionsShouldFailTest() throws Exception {
-        Label label = Instancio.of(modelGenerator.getLabelModel()).create();
-        MockHttpServletRequestBuilder showRequest = get(API_LABELS + "/" + label.getId());
+        Label newLabel = Instancio.of(modelGenerator.getLabelModel()).create();
+        MockHttpServletRequestBuilder showRequest = get(API_LABELS + "/" + newLabel.getId());
         MockHttpServletRequestBuilder createRequest = post(API_LABELS)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(label));
-        MockHttpServletRequestBuilder deleteRequest = delete(API_LABELS + "/" + label.getId());
-        MockHttpServletRequestBuilder updateRequest = put(API_LABELS + "/" + label.getId())
+                .content(om.writeValueAsString(newLabel));
+        MockHttpServletRequestBuilder deleteRequest = delete(API_LABELS + "/" + newLabel.getId());
+        MockHttpServletRequestBuilder updateRequest = put(API_LABELS + "/" + newLabel.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(label));
+                .content(om.writeValueAsString(newLabel));
         this.mockMvc.perform(showRequest).andExpect(status().isUnauthorized());
         this.mockMvc.perform(createRequest).andExpect(status().isUnauthorized());
         this.mockMvc.perform(updateRequest).andExpect(status().isUnauthorized());

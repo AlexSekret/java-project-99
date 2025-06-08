@@ -55,6 +55,7 @@ import java.util.Map;
 class TaskStatusControllerTest {
     public static final String API_TASK_STATUSES = "/api/task_statuses";
     public static final String DEFAULT_QUERY = "?_end=10&_order=ASC&_sort=id&_start=0";
+    private static final Long NON_EXISTING_STATUS = 9999L;
     @Autowired
     private WebApplicationContext wac;
 
@@ -144,17 +145,17 @@ class TaskStatusControllerTest {
 
     @Test
     void testCreate() throws Exception {
-        TaskStatusCreateDTO status = new TaskStatusCreateDTO();
-        status.setName("To Create");
-        status.setSlug("to_Create");
+        TaskStatusCreateDTO newStatus = new TaskStatusCreateDTO();
+        newStatus.setName("To Create");
+        newStatus.setSlug("to_Create");
         MockHttpServletRequestBuilder request = post(API_TASK_STATUSES).with(token)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(om.writeValueAsString(status));
+                .content(om.writeValueAsString(newStatus));
         this.mockMvc.perform(request)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value(status.getName()))
-                .andExpect(jsonPath("$.slug").value(status.getSlug()));
-        assertTrue(taskStatusRepository.findBySlug(status.getSlug()).isPresent());
+                .andExpect(jsonPath("$.name").value(newStatus.getName()))
+                .andExpect(jsonPath("$.slug").value(newStatus.getSlug()));
+        assertTrue(taskStatusRepository.findBySlug(newStatus.getSlug()).isPresent());
     }
 
     @Test
@@ -224,6 +225,13 @@ class TaskStatusControllerTest {
         this.mockMvc.perform(request)
                 .andExpect(status().isNoContent());
         assertFalse(taskStatusRepository.existsById(savedStatus.getId()));
+    }
+
+    @Test
+    void deleteNonExistentStatusShould404Test() throws Exception {
+        MockHttpServletRequestBuilder request = delete(API_TASK_STATUSES + "/" + NON_EXISTING_STATUS).with(token);
+        this.mockMvc.perform(request)
+                .andExpect(status().isNotFound());
     }
 
     @Test

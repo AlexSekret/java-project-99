@@ -7,7 +7,6 @@ import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.service.CustomUserDetailsService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -17,17 +16,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//@Profile("dev")
 @Component
 @AllArgsConstructor
 public class DataInitializer implements ApplicationRunner {
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Autowired
-    private TaskStatusRepository taskRepository;
-    @Autowired
-    private LabelRepository labelRepository;
+    private final CustomUserDetailsService userDetailsService;
+    private final TaskStatusRepository taskRepository;
+    private final LabelRepository labelRepository;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {

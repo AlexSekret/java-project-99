@@ -116,9 +116,9 @@ class TaskControllerTest {
     @AfterEach
     void tearDown() {
         List<Task> tasks = taskRepository.findAll();
-        tasks.forEach(task -> {
-            task.setLabels(new HashSet<>());
-            taskRepository.save(task);
+        tasks.forEach(t -> {
+            t.setLabels(new HashSet<>());
+            taskRepository.save(t);
         });
         taskRepository.deleteAll();
         labelRepository.deleteAll();
@@ -224,11 +224,14 @@ class TaskControllerTest {
     }
 
     @Test
-    void updateAndDdeleteNonExistingTaskShould404Test() throws Exception {
+    void deleteNonExistentTaskShould404Test() throws Exception {
         MockHttpServletRequestBuilder request = delete(API_TASKS + "/" + NON_EXISTING_TASK).with(token);
         this.mockMvc.perform(request)
                 .andExpect(status().isNotFound());
+    }
 
+    @Test
+    void updateNonExistingTaskShould404Test() throws Exception {
         TaskUpdateDTO updateDTO = new TaskUpdateDTO();
         updateDTO.setIndex(JsonNullable.of(2));
         updateDTO.setAssigneeId(JsonNullable.of(user.getId()));

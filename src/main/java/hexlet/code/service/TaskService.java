@@ -7,40 +7,20 @@ import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Task;
-import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
-import hexlet.code.repository.TaskStatusRepository;
-import hexlet.code.repository.UserRepository;
 import hexlet.code.specification.TaskSpecification;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
+@AllArgsConstructor
 public class TaskService {
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private TaskMapper taskMapper;
-    @Autowired
-    private TaskStatusRepository taskStatusRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private LabelRepository labelRepository;
-    @Autowired
-    private TaskSpecification specBuilder;
-
-    public List<TaskDTO> getAll() {
-        List<Task> tasks = taskRepository.findAll();
-        return tasks.stream()
-                .map(taskMapper::toTaskDTO)
-                .toList();
-    }
+    private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
+    private final TaskSpecification specBuilder;
 
     public Page<TaskDTO> getPage(TaskParamsDTO params, Pageable page) {
         Specification<Task> spec = specBuilder.build(params);
@@ -50,7 +30,7 @@ public class TaskService {
 
     public TaskDTO getById(Long id) {
         Task task = taskRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
+                orElseThrow(() -> new ResourceNotFoundException(id, "Task"));
         return taskMapper.toTaskDTO(task);
     }
 
@@ -62,13 +42,13 @@ public class TaskService {
 
     public void deleteById(Long id) {
         Task task = taskRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
-        taskRepository.deleteById(id);
+                orElseThrow(() -> new ResourceNotFoundException(id, "Task"));
+        taskRepository.delete(task);
     }
 
     public TaskDTO update(Long id, TaskUpdateDTO dto) {
         Task task = taskRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
+                orElseThrow(() -> new ResourceNotFoundException(id, "Task"));
         taskMapper.update(dto, task);
         taskRepository.save(task);
         return taskMapper.toTaskDTO(task);

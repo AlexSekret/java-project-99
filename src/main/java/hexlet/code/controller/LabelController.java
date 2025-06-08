@@ -6,7 +6,7 @@ import hexlet.code.dto.label.LabelUpdateDTO;
 import hexlet.code.service.LabelService;
 import hexlet.code.service.PaginationService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,11 +24,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@AllArgsConstructor
 public class LabelController {
-    @Autowired
-    private LabelService labelService;
-    @Autowired
-    private PaginationService paginationService;
+    private final LabelService labelService;
+    private final PaginationService paginationService;
 
     @GetMapping(path = "/labels/{id}")
     @ResponseStatus(HttpStatus.OK)

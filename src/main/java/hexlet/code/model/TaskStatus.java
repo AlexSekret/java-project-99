@@ -40,9 +40,6 @@ public class TaskStatus implements BaseEntity {
     @NotBlank
     private String slug;
 
-//    @OneToMany(mappedBy = "taskStatus")
-//    private List<Task> tasks = new ArrayList<>();
-
     @CreatedDate
     private LocalDate createdAt;
 }

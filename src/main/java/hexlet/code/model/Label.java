@@ -36,9 +36,6 @@ public class Label implements BaseEntity {
     @Size(min = 3, max = 1000)
     private String name;
 
-//    @ManyToMany(mappedBy = "labels")
-//    private List<Task> tasks = new ArrayList<>();
-
     @CreatedDate
     private LocalDate createdAt;
 }

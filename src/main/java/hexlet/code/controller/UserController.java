@@ -7,7 +7,7 @@ import hexlet.code.repository.UserRepository;
 import hexlet.code.service.PaginationService;
 import hexlet.code.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,14 +27,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
+@AllArgsConstructor
 public class UserController {
-
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private PaginationService paginationService;
-    @Autowired
-    private UserRepository useRepository;
+    private final UserService userService;
+    private final PaginationService paginationService;
+    private final UserRepository useRepository;
 
     @GetMapping(path = "/users")
     @ResponseStatus(HttpStatus.OK)

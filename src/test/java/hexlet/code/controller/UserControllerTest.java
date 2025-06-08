@@ -53,6 +53,7 @@ import java.util.List;
 })
 class UserControllerTest {
     public static final String API_USERS = "/api/users";
+    public static final Long NON_EXISTING_USER = 9999L;
     @Autowired
     private WebApplicationContext wac;
 
@@ -171,7 +172,6 @@ class UserControllerTest {
 
     @Test
     void testIndex() throws Exception {
-        //        TODO: rewrite
         MockHttpServletRequestBuilder request = get(API_USERS).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
                 .andExpectAll(
@@ -199,7 +199,6 @@ class UserControllerTest {
 
     @Test
     void testShow() throws Exception {
-//        TODO: rewrite
         MockHttpServletRequestBuilder request = get(API_USERS + "/" + user.getId()).with(token);
         MockHttpServletResponse result = this.mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -243,7 +242,6 @@ class UserControllerTest {
     @Test
     void testUpdate() throws Exception {
         UserUpdateDTO updateData = new UserUpdateDTO();
-        User u = user;
         updateData.setEmail(JsonNullable.of("updated@example.com"));
         long id = user.getId();
         String jsonData = om.writeValueAsString(updateData);
@@ -273,6 +271,13 @@ class UserControllerTest {
         assertThat(userRepository.existsById(userWithNoTasks.getId())).isFalse();
 
         mockMvc.perform(get(API_USERS + "/" + userWithNoTasks.getId()).with(userWithNoTasksToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteNonExistentUserTest() throws Exception {
+        MockHttpServletRequestBuilder request = delete(API_USERS + "/" + NON_EXISTING_USER).with(token);
+        this.mockMvc.perform(request)
                 .andExpect(status().isNotFound());
     }
 

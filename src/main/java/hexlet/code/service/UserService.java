@@ -7,38 +7,27 @@ import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
+@AllArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private UserMapper userMapper;
-
-    public List<UserDTO> getAll() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(userMapper::map)
-                .toList();
-    }
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public UserDTO getById(Long id) {
         User user = userRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+                orElseThrow(() -> new ResourceNotFoundException(id, "User"));
         return userMapper.map(user);
     }
 
     public void deleteById(Long id) {
         User user = userRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+                orElseThrow(() -> new ResourceNotFoundException(id, "User"));
         userRepository.delete(user);
     }
 
@@ -50,7 +39,7 @@ public class UserService {
 
     public UserDTO update(Long id, UserUpdateDTO userDTO) {
         User userData = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(id, "User"));
         userMapper.update(userDTO, userData);
         userRepository.save(userData);
         return userMapper.map(userData);
