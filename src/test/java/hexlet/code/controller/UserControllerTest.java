@@ -106,8 +106,6 @@ class UserControllerTest {
 
     @AfterEach
     void tearDown() {
-        task.setAssignee(null);
-        task.setTaskStatus(null);
         taskRepository.deleteAll(); // Сначала удаляем Task
         taskStatusRepository.deleteAll();
         userRepository.deleteAll();

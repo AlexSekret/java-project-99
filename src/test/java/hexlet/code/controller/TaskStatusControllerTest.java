@@ -110,7 +110,7 @@ class TaskStatusControllerTest {
 
     @AfterEach
     void tearDown() {
-        taskRepository.deleteAll(); // Сначала удаляем Task
+        taskRepository.deleteAll();
         userRepository.deleteAll();
         taskStatusRepository.deleteAll();
     }

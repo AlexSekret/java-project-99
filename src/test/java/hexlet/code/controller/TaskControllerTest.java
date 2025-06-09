@@ -43,8 +43,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
@@ -115,11 +113,6 @@ class TaskControllerTest {
 
     @AfterEach
     void tearDown() {
-        List<Task> tasks = taskRepository.findAll();
-        tasks.forEach(t -> {
-            t.setLabels(new HashSet<>());
-            taskRepository.save(t);
-        });
         taskRepository.deleteAll();
         labelRepository.deleteAll();
         taskStatusRepository.deleteAll();

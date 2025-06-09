@@ -41,8 +41,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
@@ -107,13 +105,6 @@ class LabelControllerTest {
 
     @AfterEach
     void tearDown() {
-        List<Task> tasks = taskRepository.findAll();
-        tasks.forEach(t -> {
-            t.setLabels(new HashSet<>());
-            taskRepository.save(t);
-        });
-
-        // Now delete in reverse order
         taskRepository.deleteAll();
         labelRepository.deleteAll();
         taskStatusRepository.deleteAll();
